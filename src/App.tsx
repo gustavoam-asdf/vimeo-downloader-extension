@@ -78,37 +78,9 @@ function App() {
 
 		const { video, audio } = betterMedia
 
-		const videoFileHandle = await window.showSaveFilePicker({
-			startIn: 'videos',
-			suggestedName: `${currentTab.title}.m4v`,
-			types: [
-				{
-					description: 'Archivo de video',
-					accept: {
-						'video/m4v': ['.m4v']
-					}
-				}
-			]
-		})
-
-		const audioFileHandle = audio
-			? await window.showSaveFilePicker({
-				suggestedName: `${currentTab.title}.m4a`,
-				types: [
-					{
-						description: 'Archivo de audio',
-						accept: {
-							'audio/m4a': ['.m4a']
-						}
-					}
-				]
-			})
-			: undefined
-
-		if (!audioFileHandle || !audio) {
+		if (!audio) {
 			await processVideoMedia({
 				video,
-				fileHandle: videoFileHandle
 			})
 			return
 		}
@@ -116,11 +88,9 @@ function App() {
 		await Promise.all([
 			processVideoMedia({
 				video,
-				fileHandle: videoFileHandle
 			}),
 			processAudioMedia({
 				audio,
-				fileHandle: audioFileHandle
 			})
 		])
 

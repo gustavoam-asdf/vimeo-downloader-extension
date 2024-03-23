@@ -22,7 +22,7 @@ interface DownloadState {
 	}
 }
 
-export function useVimeoDownloader({ masterJsonUrl }: Params) {
+export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 	const [downloadState, setDownloadState] = useState<DownloadState>({
 		video: {
 			isDownloading: false,
@@ -91,11 +91,9 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 	)
 
 	const processMedia = async ({
-		fileHandle,
 		type,
 		media
 	}: {
-		fileHandle: FileSystemFileHandle,
 		type: 'video' | 'audio',
 		media: MediaResolved
 	}) => {
@@ -110,14 +108,25 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		const totalSegments = media.segments.length + 1
 		const segmentSize = 100 / totalSegments
 
-		const writable = await fileHandle.createWritable();
+		const chunkSize = Math.ceil(totalSegments / 10) + 1
 
 		const rawInitContent = window.atob(media.init_segment)
 		const initContentData = Uint8Array.from(rawInitContent, c => c.charCodeAt(0))
 
 		const initContent = new Blob([initContentData], { type: media.mime_type });
+		const extension = type === 'video' ? 'mp4' : 'm4a'
 
-		await writable.write(initContent);
+		let currentPart = 1
+
+		const tmpUrl = URL.createObjectURL(initContent)
+		await chrome.downloads.download({
+			url: tmpUrl,
+			filename: `vimeo-downloader/${name}-part-${currentPart}.${extension}`,
+			saveAs: false
+		})
+		URL.revokeObjectURL(tmpUrl)
+
+		currentPart++
 
 		setDownloadState(prev => ({
 			...prev,
@@ -129,7 +138,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 
 		const chunks = splitInChunks({
 			values: media.segments,
-			size: 2
+			size: chunkSize
 		})
 
 		for await (const { values: segments } of chunks) {
@@ -138,7 +147,15 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 			)
 			const result = new Blob(downloadedSegments, { type: media.mime_type });
 
-			await writable.write(result);
+			const tmpUrl = URL.createObjectURL(result)
+			await chrome.downloads.download({
+				url: tmpUrl,
+				filename: `vimeo-downloader/${name}-part-${currentPart}.${extension}`,
+				saveAs: false
+			})
+			URL.revokeObjectURL(tmpUrl)
+
+			currentPart++
 
 			setDownloadState(prev => ({
 				...prev,
@@ -148,8 +165,6 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 				}
 			}))
 		}
-
-		await writable.close();
 
 		setDownloadState(prev => ({
 			...prev,
@@ -162,10 +177,8 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 
 	const processVideoMedia = async ({
 		video,
-		fileHandle
 	}: {
 		video: MediaResolved
-		fileHandle: FileSystemFileHandle
 	}) => {
 		if (downloadState.video.isDownloading) {
 			console.warn('Video is already downloading, skipping')
@@ -173,7 +186,6 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		}
 
 		await processMedia({
-			fileHandle,
 			type: 'video',
 			media: video
 		})
@@ -181,10 +193,8 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 
 	const processAudioMedia = async ({
 		audio,
-		fileHandle
 	}: {
 		audio: MediaResolved
-		fileHandle: FileSystemFileHandle
 	}) => {
 		if (downloadState.audio.isDownloading) {
 			console.warn('Audio is already downloading, skipping')
@@ -192,7 +202,6 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		}
 
 		await processMedia({
-			fileHandle,
 			type: 'audio',
 			media: audio
 		})
