@@ -11,6 +11,10 @@
 	"action": {
 		"default_popup": "index.html"
 	},
+	"permissions": [
+		"activeTab",
+		"webRequest"
+	],
 	"host_permissions": [
 		"https://*/*"
 	]
