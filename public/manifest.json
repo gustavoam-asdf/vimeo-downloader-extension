@@ -14,7 +14,8 @@
 	"permissions": [
 		"tabs",
 		"webRequest",
-		"storage"
+		"storage",
+		"downloads"
 	],
 	"background": {
 		"service_worker": "sw.js"
