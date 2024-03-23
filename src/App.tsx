@@ -1,12 +1,10 @@
-import './App.css'
-
 import { useEffect, useState } from 'react'
 
 import { Button } from './components/ui/button'
 
 function App() {
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
-	const [count, setCount] = useState(0)
+	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
 
 	useEffect(() => {
 		const getActiveTab = async () => {
@@ -19,40 +17,35 @@ function App() {
 	}, [])
 
 	useEffect(() => {
-		async function interceptRequests() {
-			const [currentTab] = await chrome.tabs.query({ active: true })
-			chrome.webRequest.onCompleted.addListener(
-				details => {
-					const isMasterJson = details.url.includes('master.json')
-					if (!isMasterJson) return
+		if (!currentTab) return
 
-					console.log(details)
-				},
-				{
-					urls: [
-						'<all_urls>'
-					],
-					tabId: currentTab.id,
-				},
-			)
-		}
+		chrome.webRequest.onCompleted.addListener(
+			details => {
+				const isMasterJsonRequest = details.url.includes('master.json')
+				if (!isMasterJsonRequest) return
 
-		interceptRequests()
-	}, [])
+				setMasterJsonUrl(details.url)
+			},
+			{
+				urls: [
+					'<all_urls>'
+				],
+				tabId: currentTab.id,
+			},
+		)
+	}, [currentTab])
 
 	const handleClick = async () => {
-		setCount((count) => count + 1)
-		const [tab] = await chrome.tabs.query({ active: true })
-		console.log(tab)
+		console.log(masterJsonUrl)
 	}
 
 	return (
-		<main>
-			<h1>
-				Estas en la pestaña: {currentTab?.title}
+		<main className="min-w-96 p-3">
+			<h1 className="text-primary font-bold text-base text-pretty text-center mb-2">
+				{currentTab?.title}
 			</h1>
 			<Button onClick={handleClick}>
-				count is {count}
+				Descargar
 			</Button>
 		</main>
 	)
