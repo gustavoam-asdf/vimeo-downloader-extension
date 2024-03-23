@@ -129,7 +129,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 
 		const chunks = splitInChunks({
 			values: media.segments,
-			size: 10
+			size: 2
 		})
 
 		for await (const { values: segments } of chunks) {
