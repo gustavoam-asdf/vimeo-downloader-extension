@@ -5,7 +5,18 @@ import { useEffect, useState } from 'react'
 import { Button } from './components/ui/button'
 
 function App() {
+	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [count, setCount] = useState(0)
+
+	useEffect(() => {
+		const getActiveTab = async () => {
+			const [currentTab] = await chrome.tabs.query({ active: true })
+
+			setCurrentTab(currentTab)
+		}
+
+		getActiveTab()
+	}, [])
 
 	useEffect(() => {
 		async function interceptRequests() {
@@ -36,11 +47,14 @@ function App() {
 	}
 
 	return (
-		<>
+		<main>
+			<h1>
+				Estas en la pestaña: {currentTab?.title}
+			</h1>
 			<Button onClick={handleClick}>
 				count is {count}
 			</Button>
-		</>
+		</main>
 	)
 }
 
