@@ -11,12 +11,27 @@ export interface Params {
 	masterJsonUrl?: string
 }
 
-export const VIMEO_DOWNLOAD_DIR = 'vimeo-downloader'
+interface DownloadState {
+	video: {
+		isDownloading: boolean
+		progress: number
+	}
+	audio: {
+		isDownloading: boolean
+		progress: number
+	}
+}
 
 export function useVimeoDownloader({ masterJsonUrl }: Params) {
-	const [isDownloading, setIsDownloading] = useState({
-		video: false,
-		audio: false
+	const [downloadState, setDownloadState] = useState<DownloadState>({
+		video: {
+			isDownloading: false,
+			progress: 0,
+		},
+		audio: {
+			isDownloading: false,
+			progress: 0,
+		}
 	})
 
 	const getBetterMedia = async () => {
@@ -84,10 +99,16 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		type: 'video' | 'audio',
 		media: MediaResolved
 	}) => {
-		setIsDownloading(prev => ({
+		setDownloadState(prev => ({
 			...prev,
-			[type]: true
+			[type]: {
+				downloading: true,
+				progress: 0
+			}
 		}))
+
+		const totalSegments = media.segments.length + 1
+		const segmentSize = 100 / totalSegments
 
 		const writable = await fileHandle.createWritable();
 
@@ -97,6 +118,14 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		const initContent = new Blob([initContentData], { type: media.mime_type });
 
 		await writable.write(initContent);
+
+		setDownloadState(prev => ({
+			...prev,
+			[type]: {
+				isDownloading: true,
+				progress: segmentSize
+			}
+		}))
 
 		const chunks = splitInChunks({
 			values: media.segments,
@@ -110,13 +139,24 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 			const result = new Blob(downloadedSegments, { type: media.mime_type });
 
 			await writable.write(result);
+
+			setDownloadState(prev => ({
+				...prev,
+				[type]: {
+					isDownloading: true,
+					progress: prev[type].progress + segmentSize * segments.length
+				}
+			}))
 		}
 
 		await writable.close();
 
-		setIsDownloading(prev => ({
+		setDownloadState(prev => ({
 			...prev,
-			[type]: false
+			[type]: {
+				isDownloading: false,
+				progress: 100
+			}
 		}))
 	}
 
@@ -127,7 +167,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		video: MediaResolved
 		fileHandle: FileSystemFileHandle
 	}) => {
-		if (isDownloading.video) {
+		if (downloadState.video.isDownloading) {
 			console.warn('Video is already downloading, skipping')
 			return
 		}
@@ -146,7 +186,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 		audio: MediaResolved
 		fileHandle: FileSystemFileHandle
 	}) => {
-		if (isDownloading.audio) {
+		if (downloadState.audio.isDownloading) {
 			console.warn('Audio is already downloading, skipping')
 			return
 		}
@@ -159,7 +199,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 	}
 
 	return {
-		isDownloading,
+		downloadState,
 		getBetterMedia,
 		processVideoMedia,
 		processAudioMedia,

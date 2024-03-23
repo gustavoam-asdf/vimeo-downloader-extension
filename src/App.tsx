@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { Button } from './components/ui/button'
+import { Progress } from "@/components/ui/progress"
 import { useVimeoDownloader } from './hooks/useVimeoDownloader'
 
 function App() {
@@ -60,7 +61,7 @@ function App() {
 		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
-	const { isDownloading, getBetterMedia, processVideoMedia } = useVimeoDownloader({
+	const { downloadState, getBetterMedia, processVideoMedia } = useVimeoDownloader({
 		name: currentTab?.title ?? "Vimeo Downloader Extension video",
 		masterJsonUrl: masterJsonUrl
 	})
@@ -112,18 +113,30 @@ function App() {
 				<Button
 					type="button"
 					onClick={handleClick}
-					disabled={isDownloading.video || isDownloading.audio || !masterJsonUrl}
+					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !masterJsonUrl}
 				>
 					{
-						isDownloading.video
-							? 'Descargando video'
-							: isDownloading.audio
-								? 'Descargando audio'
-								: masterJsonUrl
-									? 'Descargar'
-									: 'No hay contenido multimedia'
+						downloadState.video.isDownloading || downloadState.audio.isDownloading
+							? 'Descargando'
+							: masterJsonUrl
+								? 'Descargar'
+								: 'No hay contenido multimedia'
 					}
 				</Button>
+			</div>
+			<div>
+				{downloadState.video.isDownloading && (
+					<div>
+						<p>Descargando video</p>
+						<Progress value={downloadState.video.progress} />
+					</div>
+				)}
+				{downloadState.audio.isDownloading && (
+					<div>
+						<p>Descargando audio</p>
+						<Progress value={downloadState.audio.progress} />
+					</div>
+				)}
 			</div>
 		</main>
 	)

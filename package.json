@@ -10,6 +10,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@radix-ui/react-progress": "^1.0.3",
 		"@radix-ui/react-slot": "^1.0.2",
 		"@types/chrome": "^0.0.263",
 		"D": "^1.0.0",
