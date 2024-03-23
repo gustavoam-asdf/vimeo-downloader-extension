@@ -114,7 +114,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		const initContentData = Uint8Array.from(rawInitContent, c => c.charCodeAt(0))
 
 		const initContent = new Blob([initContentData], { type: media.mime_type });
-		const extension = type === 'video' ? 'mp4' : 'm4a'
+		const extension = type === 'video' ? 'm4v' : 'm4a'
 
 		let currentPart = 1
 
