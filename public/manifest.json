@@ -13,8 +13,12 @@
 	},
 	"permissions": [
 		"tabs",
-		"webRequest"
+		"webRequest",
+		"storage"
 	],
+	"background": {
+		"service_worker": "sw.js"
+	},
 	"host_permissions": [
 		"https://*/*"
 	]
