@@ -18,6 +18,19 @@ function App() {
 	}, [])
 
 	useEffect(() => {
+		if (!currentTab) return
+
+		const tabUpdateHandler = (tabId: number, _: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
+			if (tabId !== currentTab.id) return
+			setCurrentTab(tab)
+		}
+
+		chrome.tabs.onUpdated.addListener(tabUpdateHandler)
+
+		return () => chrome.tabs.onUpdated.removeListener(tabUpdateHandler)
+	}, [currentTab])
+
+	useEffect(() => {
 		const getMasterJsonUrl = async () => {
 			if (!currentTab?.id) return
 			const masterJsonUrlSaved = await chrome.storage.session.get(currentTab.id.toString())
@@ -47,7 +60,7 @@ function App() {
 		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
-	const { getBetterMedia, processVideoMedia } = useVimeoDownloader({
+	const { isDownloading, getBetterMedia, processVideoMedia } = useVimeoDownloader({
 		name: currentTab?.title ?? "Vimeo Downloader Extension video",
 		masterJsonUrl: masterJsonUrl
 	})
@@ -99,12 +112,16 @@ function App() {
 				<Button
 					type="button"
 					onClick={handleClick}
-					disabled={!masterJsonUrl}
+					disabled={isDownloading.video || isDownloading.audio || !masterJsonUrl}
 				>
 					{
-						masterJsonUrl
-							? 'Descargar'
-							: 'No se encontró ningún video'
+						isDownloading.video
+							? 'Descargando video'
+							: isDownloading.audio
+								? 'Descargando audio'
+								: masterJsonUrl
+									? 'Descargar'
+									: 'No hay contenido multimedia'
 					}
 				</Button>
 			</div>
