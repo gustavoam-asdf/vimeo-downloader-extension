@@ -28,8 +28,31 @@ function App() {
 		getMasterJsonUrl()
 	}, [currentTab])
 
+	useEffect(() => {
+		const onChangeStorage = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+			for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
+				const isCurrentTab = key === currentTab?.id?.toString()
+
+				if (!isCurrentTab) return
+
+				if (oldValue === newValue) return
+
+				setMasterJsonUrl(newValue as string)
+			}
+		}
+
+		chrome.storage.onChanged.addListener(onChangeStorage);
+
+		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
+	}, [currentTab])
+
 	const handleClick = async () => {
-		console.log(masterJsonUrl)
+		if (!masterJsonUrl) return
+
+		await chrome.downloads.download({
+			url: masterJsonUrl,
+			filename: 'master.json'
+		})
 	}
 
 	return (
