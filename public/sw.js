@@ -1,12 +1,18 @@
 chrome.webRequest.onCompleted.addListener(
-	details => {
+	async details => {
 		const isMasterJsonRequest = details.url.includes('master.json')
 		if (!isMasterJsonRequest) return
 
-		console.log({
-			url: details.url,
-			tabId: details.tabId,
+		await chrome.storage.session.set({
+			[details.tabId]: details.url,
 		})
+			.then(() => {
+				console.log({
+					message: 'master.json url saved',
+					tabId: details.tabId,
+					url: details.url,
+				})
+			})
 	},
 	{
 		urls: [
