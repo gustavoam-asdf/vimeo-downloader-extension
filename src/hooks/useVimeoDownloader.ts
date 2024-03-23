@@ -70,9 +70,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 			if (!response.ok) {
 				throw new Error(`Downloading segment with url '${segment.absoluteUrl}' failed with status: ${response.status} ${response.statusText}`);
 			}
-			const buffer = await response.arrayBuffer();
-			const data = new Uint8Array(buffer);
-			return data;
+			return await response.blob();
 		},
 		[]
 	)
@@ -95,7 +93,18 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 
 		const initContent = window.atob(media.init_segment)
 
-		await writable.write(initContent);
+		let rawLength = initContent.length;
+		let initContentArray = new Uint8Array(new ArrayBuffer(rawLength));
+
+		for (let i = 0; i < rawLength; i++) {
+			initContentArray[i] = initContent.charCodeAt(i);
+		}
+
+		let blob = new Blob([initContentArray], { type: media.mime_type });
+
+		console.log({ initBlob: blob })
+
+		await writable.write(blob);
 
 		const chunks = splitInChunks({
 			values: media.segments,
@@ -106,11 +115,9 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 			const downloadedSegments = await Promise.all(
 				segments.map(downloadSegment)
 			)
-			const bytes = downloadedSegments.map(dw => Array.from(dw)).reduce((acc, curr) => acc.concat(curr), [])
-			const result = new Uint8Array(bytes)
+			const result = new Blob(downloadedSegments, { type: media.mime_type });
 
-			const decoded = new TextDecoder().decode(result)
-			await writable.write(decoded);
+			await writable.write(result);
 		}
 
 		await writable.close();
