@@ -1,5 +1,4 @@
 {
-	"$schema": "https://json.schemastore.org/chrome-manifest",
 	"manifest_version": 3,
 	"version_name": "1.0.0",
 	"name": "Vimeo Downloader",

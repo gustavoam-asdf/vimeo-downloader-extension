@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import { Button } from './components/ui/button'
+import { useVimeoDownloader } from './hooks/useVimeoDownloader'
 
 function App() {
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
@@ -46,13 +47,47 @@ function App() {
 		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
-	const handleClick = async () => {
-		if (!masterJsonUrl) return
+	const { getBetterMedia, processVideoMedia } = useVimeoDownloader({
+		name: currentTab?.title ?? "Vimeo Downloader Extension video",
+		masterJsonUrl: masterJsonUrl
+	})
 
-		await chrome.downloads.download({
-			url: masterJsonUrl,
-			filename: 'master.json'
+	const handleClick = async () => {
+		if (!masterJsonUrl || !currentTab?.title) return
+
+		const betterMedia = await getBetterMedia()
+
+		if (!betterMedia) {
+			console.error('No se pudo obtener el contenido multimedia')
+			return
+		}
+
+		const { video } = betterMedia
+
+		const videoFileHandle = await window.showSaveFilePicker({
+			startIn: 'videos',
+			suggestedName: `${currentTab.title}.m4v`,
+			types: [
+				{
+					description: 'Archivo de video',
+					accept: {
+						'video/m4v': ['.m4v']
+					}
+				}
+			]
 		})
+
+		console.log("Starting download")
+		await processVideoMedia({
+			video,
+			fileHandle: videoFileHandle
+		})
+		console.log("Download finished")
+
+		// await chrome.downloads.download({
+		// 	url: masterJsonUrl,
+		// 	filename: 'master.json'
+		// })
 	}
 
 	return (

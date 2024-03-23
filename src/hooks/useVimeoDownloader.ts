@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useState } from "react"
 
 import { MasterVideo } from "@/models/MasterVideo"
 import { MediaResolved } from "@/models/MediaResolved"
@@ -8,20 +8,21 @@ import { splitInChunks } from "@/lib/splitInChunks"
 
 export interface Params {
 	name: string
-	masterJsonUrl: string
+	masterJsonUrl?: string
 }
 
 export const VIMEO_DOWNLOAD_DIR = 'vimeo-downloader'
 
-export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
+export function useVimeoDownloader({ masterJsonUrl }: Params) {
 	const [isDownloading, setIsDownloading] = useState({
 		video: false,
 		audio: false
 	})
 
-	const masterUrl = new URL(masterJsonUrl).toString()
-
 	const getBetterMedia = async () => {
+		if (!masterJsonUrl) return
+
+		const masterUrl = new URL(masterJsonUrl).toString()
 		const response = await fetchWithRetry({ url: masterUrl })
 		const master = await response.json() as MasterVideo
 
