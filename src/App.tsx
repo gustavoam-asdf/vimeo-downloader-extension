@@ -17,22 +17,15 @@ function App() {
 	}, [])
 
 	useEffect(() => {
-		if (!currentTab) return
+		const getMasterJsonUrl = async () => {
+			if (!currentTab?.id) return
+			const masterJsonUrlSaved = await chrome.storage.session.get(currentTab.id.toString())
+			const masterJsonUrl = masterJsonUrlSaved[currentTab.id.toString()] as string
 
-		chrome.webRequest.onCompleted.addListener(
-			details => {
-				const isMasterJsonRequest = details.url.includes('master.json')
-				if (!isMasterJsonRequest) return
+			setMasterJsonUrl(masterJsonUrl)
+		}
 
-				setMasterJsonUrl(details.url)
-			},
-			{
-				urls: [
-					'<all_urls>'
-				],
-				tabId: currentTab.id,
-			},
-		)
+		getMasterJsonUrl()
 	}, [currentTab])
 
 	const handleClick = async () => {
@@ -44,9 +37,19 @@ function App() {
 			<h1 className="text-primary font-bold text-base text-pretty text-center mb-2">
 				{currentTab?.title}
 			</h1>
-			<Button onClick={handleClick}>
-				Descargar
-			</Button>
+			<div className="flex justify-center">
+				<Button
+					type="button"
+					onClick={handleClick}
+					disabled={!masterJsonUrl}
+				>
+					{
+						masterJsonUrl
+							? 'Descargar'
+							: 'No se encontró ningún video'
+					}
+				</Button>
+			</div>
 		</main>
 	)
 }
