@@ -1,0 +1,11 @@
+{
+	"$schema": "https://json.schemastore.org/chrome-manifest",
+	"manifest_version": 3,
+	"version_name": "1.0.0",
+	"name": "Vimeo Downloader",
+	"version": "1.0.0",
+	"description": "Download Vimeo videos with a single click!",
+	"icons": {
+		"256": "icons/icon-256.png"
+	}
+}
