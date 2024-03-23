@@ -159,6 +159,7 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 	}
 
 	return {
+		isDownloading,
 		getBetterMedia,
 		processVideoMedia,
 		processAudioMedia,

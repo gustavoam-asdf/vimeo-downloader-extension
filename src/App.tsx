@@ -104,7 +104,7 @@ function App() {
 	}
 
 	return (
-		<main className="min-w-96 p-3">
+		<main className="min-w-96 max-w-96 p-3">
 			<h1 className="text-primary font-bold text-base text-pretty text-center mb-2">
 				{currentTab?.title}
 			</h1>
