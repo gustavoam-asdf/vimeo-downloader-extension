@@ -61,7 +61,7 @@ function App() {
 		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
-	const { downloadState, getBetterMedia, processVideoMedia } = useVimeoDownloader({
+	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader({
 		name: currentTab?.title ?? "Vimeo Downloader Extension video",
 		masterJsonUrl: masterJsonUrl
 	})
@@ -76,7 +76,7 @@ function App() {
 			return
 		}
 
-		const { video } = betterMedia
+		const { video, audio } = betterMedia
 
 		const videoFileHandle = await window.showSaveFilePicker({
 			startIn: 'videos',
@@ -91,12 +91,38 @@ function App() {
 			]
 		})
 
-		console.log("Starting download")
-		await processVideoMedia({
-			video,
-			fileHandle: videoFileHandle
-		})
-		console.log("Download finished")
+		const audioFileHandle = audio
+			? await window.showSaveFilePicker({
+				suggestedName: `${currentTab.title}.m4a`,
+				types: [
+					{
+						description: 'Archivo de audio',
+						accept: {
+							'audio/m4a': ['.m4a']
+						}
+					}
+				]
+			})
+			: undefined
+
+		if (!audioFileHandle || !audio) {
+			await processVideoMedia({
+				video,
+				fileHandle: videoFileHandle
+			})
+			return
+		}
+
+		await Promise.all([
+			processVideoMedia({
+				video,
+				fileHandle: videoFileHandle
+			}),
+			processAudioMedia({
+				audio,
+				fileHandle: audioFileHandle
+			})
+		])
 
 		// await chrome.downloads.download({
 		// 	url: masterJsonUrl,
