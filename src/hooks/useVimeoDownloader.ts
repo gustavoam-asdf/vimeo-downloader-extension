@@ -91,20 +91,12 @@ export function useVimeoDownloader({ masterJsonUrl }: Params) {
 
 		const writable = await fileHandle.createWritable();
 
-		const initContent = window.atob(media.init_segment)
+		const rawInitContent = window.atob(media.init_segment)
+		const initContentData = Uint8Array.from(rawInitContent, c => c.charCodeAt(0))
 
-		let rawLength = initContent.length;
-		let initContentArray = new Uint8Array(new ArrayBuffer(rawLength));
+		const initContent = new Blob([initContentData], { type: media.mime_type });
 
-		for (let i = 0; i < rawLength; i++) {
-			initContentArray[i] = initContent.charCodeAt(i);
-		}
-
-		let blob = new Blob([initContentArray], { type: media.mime_type });
-
-		console.log({ initBlob: blob })
-
-		await writable.write(blob);
+		await writable.write(initContent);
 
 		const chunks = splitInChunks({
 			values: media.segments,
