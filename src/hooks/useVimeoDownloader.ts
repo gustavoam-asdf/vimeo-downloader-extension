@@ -6,11 +6,6 @@ import { SegmentResolved } from "@/models/SegmentResolved"
 import { fetchWithRetry } from "@/lib/fetchWithRetry"
 import { splitInChunks } from "@/lib/splitInChunks"
 
-export interface Params {
-	name: string
-	masterJsonUrl?: string
-}
-
 interface DownloadState {
 	video: {
 		isDownloading: boolean
@@ -22,7 +17,7 @@ interface DownloadState {
 	}
 }
 
-export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
+export function useVimeoDownloader() {
 	const [downloadState, setDownloadState] = useState<DownloadState>({
 		video: {
 			isDownloading: false,
@@ -34,9 +29,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		}
 	})
 
-	const getBetterMedia = async () => {
-		if (!masterJsonUrl) return
-
+	const getBetterMedia = async (masterJsonUrl: string) => {
 		const masterUrl = new URL(masterJsonUrl).toString()
 		const response = await fetchWithRetry({ url: masterUrl })
 		const master = await response.json() as MasterVideo
@@ -91,14 +84,24 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 	)
 
 	const chunkFileName = useCallback(
-		({ extension, chunkIndex }: { extension: string, chunkIndex: number }) => `video-downloader/${name}.chunk.${chunkIndex}.${extension}`,
+		({
+			name,
+			extension,
+			chunkIndex
+		}: {
+			name: string
+			extension: string
+			chunkIndex: number
+		}) => `video-downloader/${name}.chunk.${chunkIndex}.${extension}`,
 		[]
 	)
 
 	const processMedia = async ({
+		name,
 		type,
 		media
 	}: {
+		name: string,
 		type: 'video' | 'audio',
 		media: MediaResolved
 	}) => {
@@ -126,7 +129,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		const tmpUrl = URL.createObjectURL(initContent)
 		await chrome.downloads.download({
 			url: tmpUrl,
-			filename: chunkFileName({ extension, chunkIndex: currentPart }),
+			filename: chunkFileName({ name, extension, chunkIndex: currentPart }),
 			saveAs: false
 		})
 		URL.revokeObjectURL(tmpUrl)
@@ -155,7 +158,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 			const tmpUrl = URL.createObjectURL(result)
 			await chrome.downloads.download({
 				url: tmpUrl,
-				filename: chunkFileName({ extension, chunkIndex: currentPart }),
+				filename: chunkFileName({ name, extension, chunkIndex: currentPart }),
 				saveAs: false
 			})
 			URL.revokeObjectURL(tmpUrl)
@@ -181,8 +184,10 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 	}
 
 	const processVideoMedia = async ({
+		name,
 		video,
 	}: {
+		name: string
 		video: MediaResolved
 	}) => {
 		if (downloadState.video.isDownloading) {
@@ -191,14 +196,17 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		}
 
 		await processMedia({
+			name,
 			type: 'video',
 			media: video
 		})
 	}
 
 	const processAudioMedia = async ({
+		name,
 		audio,
 	}: {
+		name: string
 		audio: MediaResolved
 	}) => {
 		if (downloadState.audio.isDownloading) {
@@ -207,6 +215,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		}
 
 		await processMedia({
+			name,
 			type: 'audio',
 			media: audio
 		})

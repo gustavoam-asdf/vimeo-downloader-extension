@@ -61,15 +61,12 @@ function App() {
 		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
-	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader({
-		name: currentTab?.title ?? "Vimeo Downloader Extension video",
-		masterJsonUrl: masterJsonUrl
-	})
+	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
 
 	const handleClick = async () => {
 		if (!masterJsonUrl || !currentTab?.title) return
 
-		const betterMedia = await getBetterMedia()
+		const betterMedia = await getBetterMedia(masterJsonUrl)
 
 		if (!betterMedia) {
 			console.error('No se pudo obtener el contenido multimedia')
@@ -80,6 +77,7 @@ function App() {
 
 		if (!audio) {
 			await processVideoMedia({
+				name: currentTab.title,
 				video,
 			})
 			return
@@ -87,9 +85,11 @@ function App() {
 
 		await Promise.all([
 			processVideoMedia({
+				name: currentTab.title,
 				video,
 			}),
 			processAudioMedia({
+				name: currentTab.title,
 				audio,
 			})
 		])
