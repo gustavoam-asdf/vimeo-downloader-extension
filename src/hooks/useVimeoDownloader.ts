@@ -90,6 +90,11 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		[]
 	)
 
+	const chunkFileName = useCallback(
+		({ extension, chunkIndex }: { extension: string, chunkIndex: number }) => `video-downloader/${name}.chunk.${chunkIndex}.${extension}`,
+		[]
+	)
+
 	const processMedia = async ({
 		type,
 		media
@@ -121,7 +126,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 		const tmpUrl = URL.createObjectURL(initContent)
 		await chrome.downloads.download({
 			url: tmpUrl,
-			filename: `vimeo-downloader/${name}-part-${currentPart}.${extension}`,
+			filename: chunkFileName({ extension, chunkIndex: currentPart }),
 			saveAs: false
 		})
 		URL.revokeObjectURL(tmpUrl)
@@ -150,7 +155,7 @@ export function useVimeoDownloader({ name, masterJsonUrl }: Params) {
 			const tmpUrl = URL.createObjectURL(result)
 			await chrome.downloads.download({
 				url: tmpUrl,
-				filename: `vimeo-downloader/${name}-part-${currentPart}.${extension}`,
+				filename: chunkFileName({ extension, chunkIndex: currentPart }),
 				saveAs: false
 			})
 			URL.revokeObjectURL(tmpUrl)
