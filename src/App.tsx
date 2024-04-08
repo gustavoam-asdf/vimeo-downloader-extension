@@ -2,6 +2,7 @@ import { VimeoVideo, useVimeoVideoDB } from './hooks/useVimeoVideoDB'
 import { useEffect, useState } from 'react'
 
 import { DownloadVideo } from './components/DownloadVideo'
+import { useFfmpeg } from './hooks/useFfmpeg'
 
 function App() {
 	const { isReady: dbIsReady, listVimeoVideos } = useVimeoVideoDB()
@@ -77,6 +78,8 @@ function App() {
 		getVimeoVideos()
 	}, [currentTab, dbIsReady])
 
+	const { isLoaded, videoRef, messageRef, load, transcode } = useFfmpeg()
+
 	return (
 		<main className="min-w-96 max-w-96 p-3">
 			<DownloadVideo masterJsonUrl={masterJsonUrl} name={currentTab?.title} tabUrl={currentTab?.url} />
@@ -88,6 +91,20 @@ function App() {
 					</li>
 				))}
 			</ul>
+			{
+				isLoaded
+					? (
+						<>
+							<video ref={videoRef} controls></video><br />
+							<button onClick={transcode}>Transcode webm to mp4</button>
+							<p ref={messageRef}></p>
+							<p>Open Developer Tools (Ctrl+Shift+I) to View Logs</p>
+						</>
+					)
+					: (
+						<button onClick={load}>Load ffmpeg-core (~31 MB)</button>
+					)
+			}
 		</main>
 	)
 }
