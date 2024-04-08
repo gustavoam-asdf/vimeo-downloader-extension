@@ -129,9 +129,9 @@ function App() {
 				>
 					{
 						downloadState.video.isDownloading || downloadState.audio.isDownloading
-							? 'Descargando'
+							? 'Obteniendo'
 							: masterJsonUrl
-								? 'Descargar'
+								? 'Obtener'
 								: 'No hay contenido multimedia'
 					}
 				</Button>
@@ -139,13 +139,13 @@ function App() {
 			<div>
 				{downloadState.video.isDownloading && (
 					<div>
-						<p>Descargando video</p>
+						<p>Obteniendo video</p>
 						<Progress value={downloadState.video.progress} />
 					</div>
 				)}
 				{downloadState.audio.isDownloading && (
 					<div>
-						<p>Descargando audio</p>
+						<p>Obteniendo audio</p>
 						<Progress value={downloadState.audio.progress} />
 					</div>
 				)}
