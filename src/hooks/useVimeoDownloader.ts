@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { MasterVideo } from "@/models/MasterVideo"
 import { MediaResolved } from "@/models/MediaResolved"
@@ -17,7 +17,18 @@ interface DownloadState {
 	}
 }
 
-export function useVimeoDownloader() {
+export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
+	const [masterJsonUrl, setMasterJsonUrl] = useState(resolvedMasterJsonUrl)
+
+	useEffect(() => {
+		if (!resolvedMasterJsonUrl) return
+		setMasterJsonUrl(resolvedMasterJsonUrl)
+	}, [resolvedMasterJsonUrl])
+
+	const [betterMediaResolved, setBetterMediaResolved] = useState<{
+		video: MediaResolved
+		audio: MediaResolved | undefined
+	}>()
 	const [downloadState, setDownloadState] = useState<DownloadState>({
 		video: {
 			isDownloading: false,
@@ -29,46 +40,53 @@ export function useVimeoDownloader() {
 		}
 	})
 
-	const getBetterMedia = async (masterJsonUrl: string) => {
-		const masterUrl = new URL(masterJsonUrl).toString()
-		const response = await fetchWithRetry({ url: masterUrl })
-		const master = await response.json() as MasterVideo
+	useEffect(() => {
+		if (!masterJsonUrl) return
 
-		const availableVideos = [...master.video].sort((a, b) => a.avg_bitrate - b.avg_bitrate)
-		const availableAudios = master.audio
-			? [...master.audio].sort((a, b) => a.avg_bitrate - b.avg_bitrate)
-			: undefined
+		const getBetterMedia = async () => {
+			const masterUrl = new URL(masterJsonUrl).toString()
+			const response = await fetchWithRetry({ url: masterUrl })
+			const master = await response.json() as MasterVideo
 
-		const betterVideo = availableVideos[availableVideos.length - 1]
-		const betterAudio = availableAudios ? availableAudios[availableAudios.length - 1] : undefined
+			const availableVideos = [...master.video].sort((a, b) => a.avg_bitrate - b.avg_bitrate)
+			const availableAudios = master.audio
+				? [...master.audio].sort((a, b) => a.avg_bitrate - b.avg_bitrate)
+				: undefined
 
-		const mediaUrl = new URL(master.base_url, masterUrl).href
+			const betterVideo = availableVideos[availableVideos.length - 1]
+			const betterAudio = availableAudios ? availableAudios[availableAudios.length - 1] : undefined
 
-		const videoResolved: MediaResolved = {
-			...betterVideo,
-			absoluteUrl: mediaUrl,
-			segments: betterVideo.segments.map(segment => ({
-				...segment,
-				absoluteUrl: `${mediaUrl}${betterVideo.base_url}${segment.url}`
-			}))
-		}
+			const mediaUrl = new URL(master.base_url, masterUrl).href
 
-		const audioResolved: MediaResolved | undefined = betterAudio
-			? {
-				...betterAudio,
+			const videoResolved: MediaResolved = {
+				...betterVideo,
 				absoluteUrl: mediaUrl,
-				segments: betterAudio.segments.map(segment => ({
+				segments: betterVideo.segments.map(segment => ({
 					...segment,
-					absoluteUrl: `${mediaUrl}${betterAudio.base_url}${segment.url}`
+					absoluteUrl: `${mediaUrl}${betterVideo.base_url}${segment.url}`
 				}))
 			}
-			: undefined
 
-		return {
-			video: videoResolved,
-			audio: audioResolved
+			const audioResolved: MediaResolved | undefined = betterAudio
+				? {
+					...betterAudio,
+					absoluteUrl: mediaUrl,
+					segments: betterAudio.segments.map(segment => ({
+						...segment,
+						absoluteUrl: `${mediaUrl}${betterAudio.base_url}${segment.url}`
+					}))
+				}
+				: undefined
+
+			return {
+				video: videoResolved,
+				audio: audioResolved
+			}
 		}
-	}
+
+		getBetterMedia()
+			.then(setBetterMediaResolved)
+	}, [masterJsonUrl])
 
 	const downloadSegment = useCallback(
 		async (segment: SegmentResolved) => {
@@ -177,7 +195,7 @@ export function useVimeoDownloader() {
 
 	return {
 		downloadState,
-		getBetterMedia,
+		mediaResolved: betterMediaResolved,
 		processVideoMedia,
 		processAudioMedia,
 	}

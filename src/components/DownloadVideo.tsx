@@ -17,20 +17,18 @@ export function DownloadVideo({
 	tabUrl,
 }: Params) {
 	const { isReady: dbIsReady, saveVimeoVideo } = useVimeoVideoDB()
-	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
+	const { mediaResolved, downloadState, processVideoMedia, processAudioMedia } = useVimeoDownloader(masterJsonUrl)
 
 	const handleDownload = useCallback(
 		async () => {
-			if (!masterJsonUrl || !name || !dbIsReady) return
+			if (!name || !dbIsReady || !mediaResolved) return
 
-			const betterMedia = await getBetterMedia(masterJsonUrl)
-
-			if (!betterMedia) {
+			if (!mediaResolved) {
 				console.error('No se pudo obtener el contenido multimedia')
 				return
 			}
 
-			const { video, audio } = betterMedia
+			const { video, audio } = mediaResolved
 
 			if (!audio) {
 				const videoContent = await processVideoMedia(video)
@@ -66,7 +64,7 @@ export function DownloadVideo({
 
 			await saveVimeoVideo(vimeoVideo)
 		},
-		[name, masterJsonUrl, tabUrl, dbIsReady]
+		[mediaResolved, name, tabUrl, dbIsReady]
 	)
 
 	return (
