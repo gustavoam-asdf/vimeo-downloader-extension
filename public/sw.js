@@ -6,13 +6,13 @@ chrome.webRequest.onCompleted.addListener(
 		await chrome.storage.session.set({
 			[details.tabId]: details.url,
 		})
-			.then(() => {
-				console.log({
-					message: 'master.json url saved',
-					tabId: details.tabId,
-					url: details.url,
-				})
-			})
+		// .then(() => {
+		// 	console.log({
+		// 		message: 'master.json url saved',
+		// 		tabId: details.tabId,
+		// 		url: details.url,
+		// 	})
+		// })
 	},
 	{
 		urls: [

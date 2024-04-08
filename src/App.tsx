@@ -26,6 +26,7 @@ function App() {
 		const tabUpdateHandler = (tabId: number, _: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
 			if (tabId !== currentTab.id) return
 			setCurrentTab(tab)
+			listVimeoVideos(tab.url!).then(console.log)
 		}
 
 		chrome.tabs.onUpdated.addListener(tabUpdateHandler)
@@ -64,7 +65,7 @@ function App() {
 	}, [currentTab])
 
 	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
-	const { saveVimeoVideo } = useVimeoVideoDB()
+	const { listVimeoVideos, saveVimeoVideo } = useVimeoVideoDB()
 
 	const handleClick = async () => {
 		if (!masterJsonUrl || !currentTab?.title) return
@@ -85,6 +86,7 @@ function App() {
 			const vimeoVideo: VimeoVideo = {
 				id: window.crypto.randomUUID(),
 				name: currentTab.title,
+				url: currentTab.url!,
 				videoContent: new Blob(),
 			}
 
@@ -105,6 +107,7 @@ function App() {
 		const vimeoVideo: VimeoVideo = {
 			id: window.crypto.randomUUID(),
 			name: currentTab.title,
+			url: currentTab.url!,
 			videoContent,
 			audioContent
 		}
