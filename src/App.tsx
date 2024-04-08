@@ -8,7 +8,6 @@ import { useVimeoDownloader } from './hooks/useVimeoDownloader'
 function App() {
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
-	const [vimeoVideo, setVimeoVideo] = useState<VimeoVideo>()
 
 	useEffect(() => {
 		const getActiveTab = async () => {
@@ -26,7 +25,6 @@ function App() {
 		const tabUpdateHandler = (tabId: number, _: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
 			if (tabId !== currentTab.id) return
 			setCurrentTab(tab)
-			listVimeoVideos(tab.url!).then(console.log)
 		}
 
 		chrome.tabs.onUpdated.addListener(tabUpdateHandler)
@@ -67,7 +65,7 @@ function App() {
 	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
 	const { listVimeoVideos, saveVimeoVideo } = useVimeoVideoDB()
 
-	const handleClick = async () => {
+	const handleDownload = async () => {
 		if (!masterJsonUrl || !currentTab?.title) return
 
 		const betterMedia = await getBetterMedia(masterJsonUrl)
@@ -91,7 +89,6 @@ function App() {
 			}
 
 			await saveVimeoVideo(vimeoVideo)
-				.then(() => setVimeoVideo(vimeoVideo))
 			return
 		}
 
@@ -113,7 +110,6 @@ function App() {
 		}
 
 		await saveVimeoVideo(vimeoVideo)
-			.then(() => setVimeoVideo(vimeoVideo))
 	}
 
 	return (
@@ -124,7 +120,7 @@ function App() {
 			<div className="flex justify-center">
 				<Button
 					type="button"
-					onClick={handleClick}
+					onClick={handleDownload}
 					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !masterJsonUrl}
 				>
 					{
