@@ -8,6 +8,7 @@ import { useVimeoDownloader } from './hooks/useVimeoDownloader'
 function App() {
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
+	const [vimeoVideo, setVimeoVideo] = useState<VimeoVideo>()
 
 	useEffect(() => {
 		const getActiveTab = async () => {
@@ -88,6 +89,7 @@ function App() {
 			}
 
 			await saveVimeoVideo(vimeoVideo)
+				.then(() => setVimeoVideo(vimeoVideo))
 			return
 		}
 
@@ -108,6 +110,7 @@ function App() {
 		}
 
 		await saveVimeoVideo(vimeoVideo)
+			.then(() => setVimeoVideo(vimeoVideo))
 	}
 
 	return (
