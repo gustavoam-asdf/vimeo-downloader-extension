@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { UUID } from "crypto"
 
@@ -32,50 +32,59 @@ export function useVimeoVideoDB() {
 		}
 	}, [])
 
-	const listVimeoVideos = async (url: string) => {
-		if (!db) return
+	const listVimeoVideos = useCallback(
+		async (url: string) => {
+			if (!db) return []
 
-		const transaction = db.transaction('vimeoVideo', 'readonly')
-		const store = transaction.objectStore('vimeoVideo')
+			const transaction = db.transaction('vimeoVideo', 'readonly')
+			const store = transaction.objectStore('vimeoVideo')
 
-		const urlIndex = store.index('url');
+			const urlIndex = store.index('url');
 
-		const request = urlIndex.getAll(url);
+			const request = urlIndex.getAll(url);
 
-		return new Promise<VimeoVideo[]>((resolve, reject) => {
-			request.onsuccess = () => resolve(request.result)
-			request.onerror = () => reject(request.error)
-		})
-	}
+			return new Promise<VimeoVideo[]>((resolve, reject) => {
+				request.onsuccess = () => resolve(request.result)
+				request.onerror = () => reject(request.error)
+			})
+		},
+		[db]
+	)
 
-	const getVimeoVideoById = async (id: VimeoVideo["id"]) => {
-		if (!db) return
+	const getVimeoVideoById = useCallback(
+		async (id: VimeoVideo["id"]) => {
+			if (!db) return
 
-		const transaction = db.transaction('vimeoVideo', 'readonly')
-		const store = transaction.objectStore('vimeoVideo')
-		const index = store.index('id')
+			const transaction = db.transaction('vimeoVideo', 'readonly')
+			const store = transaction.objectStore('vimeoVideo')
+			const index = store.index('id')
 
-		const request = index.get(id)
+			const request = index.get(id)
 
-		return new Promise<VimeoVideo | undefined>((resolve, reject) => {
-			request.onsuccess = () => resolve(request.result)
-			request.onerror = () => reject(request.error)
-		})
-	}
+			return new Promise<VimeoVideo | undefined>((resolve, reject) => {
+				request.onsuccess = () => resolve(request.result)
+				request.onerror = () => reject(request.error)
+			})
+		},
+		[db]
+	)
 
-	const saveVimeoVideo = async (vimeoVideo: VimeoVideo) => {
-		if (!db) return
+	const saveVimeoVideo = useCallback(
+		async (vimeoVideo: VimeoVideo) => {
+			if (!db) return
 
-		const transaction = db.transaction('vimeoVideo', 'readwrite')
-		const store = transaction.objectStore('vimeoVideo')
+			const transaction = db.transaction('vimeoVideo', 'readwrite')
+			const store = transaction.objectStore('vimeoVideo')
 
-		const request = store.add(vimeoVideo)
+			const request = store.add(vimeoVideo)
 
-		return new Promise<void>((resolve, reject) => {
-			request.onsuccess = () => resolve()
-			request.onerror = () => reject(request.error)
-		})
-	}
+			return new Promise<void>((resolve, reject) => {
+				request.onsuccess = () => resolve()
+				request.onerror = () => reject(request.error)
+			})
+		},
+		[db]
+	)
 
 
 	return {
