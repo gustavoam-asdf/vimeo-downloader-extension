@@ -76,12 +76,12 @@ export function DownloadVideo({
 				<Button
 					type="button"
 					onClick={handleDownload}
-					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !masterJsonUrl}
+					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !mediaResolved}
 				>
 					{
 						downloadState.video.isDownloading || downloadState.audio.isDownloading
 							? 'Obteniendo'
-							: masterJsonUrl
+							: mediaResolved
 								? 'Obtener'
 								: 'No hay contenido multimedia'
 					}
