@@ -38,27 +38,13 @@ export function useVimeoVideoDB() {
 		const transaction = db.transaction('vimeoVideo', 'readonly')
 		const store = transaction.objectStore('vimeoVideo')
 
-		const cursor = store.openCursor()
+		const urlIndex = store.index('url');
 
-		const videos: VimeoVideo[] = []
+		const request = urlIndex.getAll(url);
 
 		return new Promise<VimeoVideo[]>((resolve, reject) => {
-			cursor.onsuccess = () => {
-				const current = cursor.result
-				if (current) {
-					const video = current.value
-
-					if (video.url === url) {
-						videos.push(video)
-					}
-
-					current.continue()
-				} else {
-					resolve(videos)
-				}
-			}
-
-			cursor.onerror = () => reject(cursor.error)
+			request.onsuccess = () => resolve(request.result)
+			request.onerror = () => reject(request.error)
 		})
 	}
 
