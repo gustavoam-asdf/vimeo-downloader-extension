@@ -67,6 +67,7 @@ function App() {
 	useEffect(() => {
 		const getVimeoVideos = async () => {
 			if (!currentTab?.url) return
+			if (!dbIsReady) return
 
 			const vimeoVideos = await listVimeoVideos(currentTab.url)
 
