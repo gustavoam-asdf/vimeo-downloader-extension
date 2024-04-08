@@ -1,12 +1,10 @@
 import { VimeoVideo, useVimeoVideoDB } from './hooks/useVimeoVideoDB'
 import { useEffect, useState } from 'react'
 
-import { Button } from './components/ui/button'
-import { Progress } from "@/components/ui/progress"
-import { useVimeoDownloader } from './hooks/useVimeoDownloader'
+import { DownloadVideo } from './components/DownloadVideo'
 
 function App() {
-	const { isReady: dbIsReady, listVimeoVideos, saveVimeoVideo } = useVimeoVideoDB()
+	const { isReady: dbIsReady, listVimeoVideos } = useVimeoVideoDB()
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
 	const [vimeoVideos, setVimeoVideos] = useState<VimeoVideo[]>([])
@@ -79,89 +77,9 @@ function App() {
 		getVimeoVideos()
 	}, [currentTab, dbIsReady])
 
-	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
-
-	const handleDownload = async () => {
-		if (!masterJsonUrl || !currentTab?.title) return
-
-		const betterMedia = await getBetterMedia(masterJsonUrl)
-
-		if (!betterMedia) {
-			console.error('No se pudo obtener el contenido multimedia')
-			return
-		}
-
-		const { video, audio } = betterMedia
-
-		if (!audio) {
-			const videoContent = await processVideoMedia(video)
-			if (!videoContent) return
-
-			const vimeoVideo: VimeoVideo = {
-				id: window.crypto.randomUUID(),
-				name: currentTab.title,
-				url: currentTab.url!,
-				videoContent: new Blob(),
-			}
-
-			await saveVimeoVideo(vimeoVideo)
-			return
-		}
-
-		const [videoContent, audioContent] = await Promise.all([
-			processVideoMedia(video),
-			processAudioMedia(audio)
-		])
-
-		if (!videoContent || !audioContent) {
-			throw new Error('No se pudo obtener el contenido multimedia')
-		}
-
-		const vimeoVideo: VimeoVideo = {
-			id: window.crypto.randomUUID(),
-			name: currentTab.title,
-			url: currentTab.url!,
-			videoContent,
-			audioContent
-		}
-
-		await saveVimeoVideo(vimeoVideo)
-	}
-
 	return (
 		<main className="min-w-96 max-w-96 p-3">
-			<h1 className="text-primary font-bold text-base text-pretty text-center mb-2">
-				{currentTab?.title}
-			</h1>
-			<div className="flex justify-center">
-				<Button
-					type="button"
-					onClick={handleDownload}
-					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !masterJsonUrl}
-				>
-					{
-						downloadState.video.isDownloading || downloadState.audio.isDownloading
-							? 'Obteniendo'
-							: masterJsonUrl
-								? 'Obtener'
-								: 'No hay contenido multimedia'
-					}
-				</Button>
-			</div>
-			<div>
-				{downloadState.video.isDownloading && (
-					<div>
-						<p>Obteniendo video</p>
-						<Progress value={downloadState.video.progress} />
-					</div>
-				)}
-				{downloadState.audio.isDownloading && (
-					<div>
-						<p>Obteniendo audio</p>
-						<Progress value={downloadState.audio.progress} />
-					</div>
-				)}
-			</div>
+			<DownloadVideo masterJsonUrl={masterJsonUrl} name={currentTab?.title} tabUrl={currentTab?.url} />
 			<ul>
 				{vimeoVideos.map(vimeoVideo => (
 					<li key={vimeoVideo.id}>
