@@ -83,28 +83,13 @@ export function useVimeoDownloader() {
 		[]
 	)
 
-	const chunkFileName = useCallback(
-		({
-			name,
-			extension,
-			chunkIndex
-		}: {
-			name: string
-			extension: string
-			chunkIndex: number
-		}) => `video-downloader/${name}.chunk.${chunkIndex}.${extension}`,
-		[]
-	)
-
 	const processMedia = async ({
-		name,
 		type,
 		media
 	}: {
-		name: string,
 		type: 'video' | 'audio',
 		media: MediaResolved
-	}) => {
+	}): Promise<Blob> => {
 		setDownloadState(prev => ({
 			...prev,
 			[type]: {
@@ -122,19 +107,6 @@ export function useVimeoDownloader() {
 		const initContentData = Uint8Array.from(rawInitContent, c => c.charCodeAt(0))
 
 		const initContent = new Blob([initContentData], { type: media.mime_type });
-		const extension = type === 'video' ? 'm4v' : 'm4a'
-
-		let currentPart = 1
-
-		const tmpUrl = URL.createObjectURL(initContent)
-		await chrome.downloads.download({
-			url: tmpUrl,
-			filename: chunkFileName({ name, extension, chunkIndex: currentPart }),
-			saveAs: false
-		})
-		URL.revokeObjectURL(tmpUrl)
-
-		currentPart++
 
 		setDownloadState(prev => ({
 			...prev,
@@ -149,21 +121,15 @@ export function useVimeoDownloader() {
 			size: chunkSize
 		})
 
+		let mediaContent = new Blob([initContent], { type: media.mime_type });
+
 		for await (const { values: segments } of chunks) {
 			const downloadedSegments = await Promise.all(
 				segments.map(downloadSegment)
 			)
 			const result = new Blob(downloadedSegments, { type: media.mime_type });
 
-			const tmpUrl = URL.createObjectURL(result)
-			await chrome.downloads.download({
-				url: tmpUrl,
-				filename: chunkFileName({ name, extension, chunkIndex: currentPart }),
-				saveAs: false
-			})
-			URL.revokeObjectURL(tmpUrl)
-
-			currentPart++
+			mediaContent = new Blob([mediaContent, result], { type: media.mime_type });
 
 			setDownloadState(prev => ({
 				...prev,
@@ -181,41 +147,29 @@ export function useVimeoDownloader() {
 				progress: 100
 			}
 		}))
+
+		return mediaContent
 	}
 
-	const processVideoMedia = async ({
-		name,
-		video,
-	}: {
-		name: string
-		video: MediaResolved
-	}) => {
+	const processVideoMedia = async (video: MediaResolved) => {
 		if (downloadState.video.isDownloading) {
 			console.warn('Video is already downloading, skipping')
 			return
 		}
 
-		await processMedia({
-			name,
+		return await processMedia({
 			type: 'video',
 			media: video
 		})
 	}
 
-	const processAudioMedia = async ({
-		name,
-		audio,
-	}: {
-		name: string
-		audio: MediaResolved
-	}) => {
+	const processAudioMedia = async (audio: MediaResolved) => {
 		if (downloadState.audio.isDownloading) {
 			console.warn('Audio is already downloading, skipping')
 			return
 		}
 
-		await processMedia({
-			name,
+		return await processMedia({
 			type: 'audio',
 			media: audio
 		})

@@ -1,3 +1,4 @@
+import { VimeoVideo, useVimeoVideoDB } from './hooks/useVimeoVideoDB'
 import { useEffect, useState } from 'react'
 
 import { Button } from './components/ui/button'
@@ -62,6 +63,7 @@ function App() {
 	}, [currentTab])
 
 	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
+	const { saveEmptyVimeoVideo, saveVideoContent, saveAudioContent } = useVimeoVideoDB()
 
 	const handleClick = async () => {
 		if (!masterJsonUrl || !currentTab?.title) return
@@ -73,31 +75,40 @@ function App() {
 			return
 		}
 
+		const vimeoVideo: VimeoVideo = {
+			id: window.crypto.randomUUID(),
+			name: currentTab.title,
+		}
+
+		await saveEmptyVimeoVideo(vimeoVideo)
+
 		const { video, audio } = betterMedia
 
 		if (!audio) {
-			await processVideoMedia({
-				name: currentTab.title,
-				video,
+			const videoContent = await processVideoMedia(video)
+			if (!videoContent) return
+
+			await saveVideoContent({
+				id: vimeoVideo.id,
+				videoContent
 			})
+
 			return
 		}
 
-		await Promise.all([
-			processVideoMedia({
-				name: currentTab.title,
-				video,
-			}),
-			processAudioMedia({
-				name: currentTab.title,
-				audio,
-			})
-		])
+		const videoContent = await processVideoMedia(video)
 
-		// await chrome.downloads.download({
-		// 	url: masterJsonUrl,
-		// 	filename: 'master.json'
-		// })
+		await saveVideoContent({
+			id: vimeoVideo.id,
+			videoContent
+		})
+
+		const audioContent = await processAudioMedia(audio)
+
+		await saveAudioContent({
+			id: vimeoVideo.id,
+			audioContent
+		})
 	}
 
 	return (
