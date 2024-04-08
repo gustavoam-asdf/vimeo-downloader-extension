@@ -5,7 +5,7 @@ import { UUID } from "crypto"
 export interface VimeoVideo {
 	id: UUID
 	name: string
-	videoContent?: Blob
+	videoContent: Blob
 	audioContent?: Blob
 }
 
@@ -45,7 +45,7 @@ export function useVimeoVideoDB() {
 		})
 	}
 
-	const saveEmptyVimeoVideo = async (vimeoVideo: Pick<VimeoVideo, "id" | "name">) => {
+	const saveVimeoVideo = async (vimeoVideo: VimeoVideo) => {
 		if (!db) return
 
 		const transaction = db.transaction('vimeoVideo', 'readwrite')
@@ -59,66 +59,9 @@ export function useVimeoVideoDB() {
 		})
 	}
 
-	const saveVideoContent = async ({
-		id,
-		videoContent
-	}: Pick<VimeoVideo, "id" | "videoContent">) => {
-		if (!db) return
-
-		const transaction = db.transaction('video', 'readwrite')
-		const store = transaction.objectStore('video')
-
-		const storedVideo = await getVimeoVideoById(id)
-
-		if (!storedVideo) {
-			throw new Error(`Video with ID ${id} not found`)
-		}
-
-		const newVideo = {
-			...storedVideo,
-			videoContent
-		}
-
-		const request = store.put(newVideo)
-
-		return new Promise<void>((resolve, reject) => {
-			request.onsuccess = () => resolve()
-			request.onerror = () => reject(request.error)
-		})
-	}
-
-	const saveAudioContent = async ({
-		id,
-		audioContent
-	}: Pick<VimeoVideo, "id" | "audioContent">) => {
-		if (!db) return
-
-		const transaction = db.transaction('video', 'readwrite')
-		const store = transaction.objectStore('video')
-
-		const storedVideo = await getVimeoVideoById(id)
-
-		if (!storedVideo) {
-			throw new Error(`Video with ID ${id} not found`)
-		}
-
-		const newVideo = {
-			...storedVideo,
-			audioContent
-		}
-
-		const request = store.put(newVideo)
-
-		return new Promise<void>((resolve, reject) => {
-			request.onsuccess = () => resolve()
-			request.onerror = () => reject(request.error)
-		})
-	}
 
 	return {
 		getVimeoVideoById,
-		saveEmptyVimeoVideo,
-		saveVideoContent,
-		saveAudioContent
+		saveVimeoVideo,
 	}
 }

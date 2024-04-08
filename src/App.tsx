@@ -63,7 +63,7 @@ function App() {
 	}, [currentTab])
 
 	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
-	const { saveEmptyVimeoVideo, saveVideoContent, saveAudioContent } = useVimeoVideoDB()
+	const { saveVimeoVideo } = useVimeoVideoDB()
 
 	const handleClick = async () => {
 		if (!masterJsonUrl || !currentTab?.title) return
@@ -75,40 +75,39 @@ function App() {
 			return
 		}
 
-		const vimeoVideo: VimeoVideo = {
-			id: window.crypto.randomUUID(),
-			name: currentTab.title,
-		}
-
-		await saveEmptyVimeoVideo(vimeoVideo)
-
 		const { video, audio } = betterMedia
 
 		if (!audio) {
 			const videoContent = await processVideoMedia(video)
 			if (!videoContent) return
 
-			await saveVideoContent({
-				id: vimeoVideo.id,
-				videoContent
-			})
+			const vimeoVideo: VimeoVideo = {
+				id: window.crypto.randomUUID(),
+				name: currentTab.title,
+				videoContent: new Blob(),
+			}
 
+			await saveVimeoVideo(vimeoVideo)
 			return
 		}
 
-		const videoContent = await processVideoMedia(video)
+		const [videoContent, audioContent] = await Promise.all([
+			processVideoMedia(video),
+			processAudioMedia(audio)
+		])
 
-		await saveVideoContent({
-			id: vimeoVideo.id,
-			videoContent
-		})
+		if (!videoContent || !audioContent) {
+			throw new Error('No se pudo obtener el contenido multimedia')
+		}
 
-		const audioContent = await processAudioMedia(audio)
-
-		await saveAudioContent({
-			id: vimeoVideo.id,
+		const vimeoVideo: VimeoVideo = {
+			id: window.crypto.randomUUID(),
+			name: currentTab.title,
+			videoContent,
 			audioContent
-		})
+		}
+
+		await saveVimeoVideo(vimeoVideo)
 	}
 
 	return (
