@@ -6,8 +6,10 @@ import { Progress } from "@/components/ui/progress"
 import { useVimeoDownloader } from './hooks/useVimeoDownloader'
 
 function App() {
+	const { isReady: dbIsReady, listVimeoVideos, saveVimeoVideo } = useVimeoVideoDB()
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
+	const [vimeoVideos, setVimeoVideos] = useState<VimeoVideo[]>([])
 
 	useEffect(() => {
 		const getActiveTab = async () => {
@@ -62,8 +64,21 @@ function App() {
 		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
+	useEffect(() => {
+		const getVimeoVideos = async () => {
+			if (!currentTab?.url) return
+
+			const vimeoVideos = await listVimeoVideos(currentTab.url)
+
+			console.log({ vimeoVideos })
+
+			setVimeoVideos(vimeoVideos)
+		}
+
+		getVimeoVideos()
+	}, [currentTab, dbIsReady])
+
 	const { downloadState, getBetterMedia, processVideoMedia, processAudioMedia } = useVimeoDownloader()
-	const { listVimeoVideos, saveVimeoVideo } = useVimeoVideoDB()
 
 	const handleDownload = async () => {
 		if (!masterJsonUrl || !currentTab?.title) return
@@ -146,6 +161,14 @@ function App() {
 					</div>
 				)}
 			</div>
+			<ul>
+				{vimeoVideos.map(vimeoVideo => (
+					<li key={vimeoVideo.id}>
+						<p>{vimeoVideo.name}</p>
+						<p>{vimeoVideo.url}</p>
+					</li>
+				))}
+			</ul>
 		</main>
 	)
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 import { UUID } from "crypto"
 
@@ -12,6 +12,8 @@ export interface VimeoVideo {
 
 export function useVimeoVideoDB() {
 	const [db, setDb] = useState<IDBDatabase>()
+
+	const isReady = useMemo(() => Boolean(db), [db])
 
 	useEffect(() => {
 		const request = indexedDB.open("vimeo-downloader-db")
@@ -88,6 +90,7 @@ export function useVimeoVideoDB() {
 
 
 	return {
+		isReady,
 		listVimeoVideos,
 		getVimeoVideoById,
 		saveVimeoVideo,
