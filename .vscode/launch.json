@@ -1,0 +1,27 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Dev",
+			"type": "node-terminal",
+			"request": "launch",
+			"command": "pnpm build --watch"
+		},
+		{
+			"name": "Client",
+			"request": "launch",
+			"type": "msedge",
+			"url": "https://saps.network/topic/rod-rohrich-achieving-consistency-in-rhinoplasty/",
+			"webRoot": "${workspaceFolder}"
+		}
+	],
+	"compounds": [
+		{
+			"name": "Full stack",
+			"configurations": [
+				"Dev",
+				"Client"
+			]
+		}
+	]
+}

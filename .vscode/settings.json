@@ -1,0 +1,9 @@
+{
+	"editor.indentSize": "tabSize",
+	"editor.tabSize": 2,
+	"cSpell.language": "en,es",
+	"cSpell.words": [
+		"tailwindcss",
+		"vimeo"
+	],
+}
