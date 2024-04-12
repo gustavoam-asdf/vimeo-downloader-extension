@@ -81,7 +81,7 @@ function App() {
 	const { isLoaded, videoRef, messageRef, load, transcode } = useFfmpeg()
 
 	return (
-		<main className="min-w-96 max-w-96 p-3">
+		<main className="min-w-[30rem] max-w-[30rem] px-4 py-6 dark bg-background">
 			<DownloadVideo masterJsonUrl={masterJsonUrl} name={currentTab?.title} tabUrl={currentTab?.url} />
 			<ul>
 				{vimeoVideos.map(vimeoVideo => (
@@ -92,7 +92,7 @@ function App() {
 				))}
 			</ul>
 			{
-				isLoaded
+				/* isLoaded
 					? (
 						<>
 							<video ref={videoRef} controls></video><br />
@@ -103,7 +103,7 @@ function App() {
 					)
 					: (
 						<button onClick={load}>Load ffmpeg-core (~31 MB)</button>
-					)
+					) */
 			}
 		</main>
 	)

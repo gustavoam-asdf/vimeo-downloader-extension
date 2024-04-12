@@ -68,39 +68,39 @@ export function DownloadVideo({
 	)
 
 	return (
-		<div>
-			<h1 className="text-primary font-bold text-base text-pretty text-center mb-2">
-				{name}
+		<>
+			<h1 className="mb-2 text-primary font-bold text-xl">
+				Video encontrado
 			</h1>
-			<div className="flex justify-center">
+			<div className="grid grid-cols-5 gap-2 items-center">
+				<h2 className="text-primary-foreground font-bold text-sm text-pretty col-span-3">
+					{name}
+				</h2>
 				<Button
 					type="button"
+					className="text-wrap col-span-2"
 					onClick={handleDownload}
 					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !mediaResolved}
 				>
 					{
 						downloadState.video.isDownloading || downloadState.audio.isDownloading
-							? 'Obteniendo'
+							? 'Obteniendo ...'
 							: mediaResolved
-								? 'Obtener'
+								? 'Obtener video'
 								: 'No hay contenido multimedia'
 					}
 				</Button>
 			</div>
-			<div>
-				{downloadState.video.isDownloading && (
-					<div>
-						<p>Obteniendo video</p>
-						<Progress value={downloadState.video.progress} />
-					</div>
-				)}
-				{downloadState.audio.isDownloading && (
-					<div>
-						<p>Obteniendo audio</p>
-						<Progress value={downloadState.audio.progress} />
-					</div>
-				)}
+			<div className={`overflow-hidden transition-[height] ${downloadState.video.isDownloading || downloadState.audio.isDownloading ? "h-20 my-2" : "h-0"}`}>
+				<div className={`mb-2 transition-opacity ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
+					<p className="text-foreground mb-1">Obteniendo video</p>
+					<Progress value={downloadState.video.progress} />
+				</div>
+				<div className={`mb-2 transition-opacity ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
+					<p className="text-foreground mb-1">Obteniendo audio</p>
+					<Progress value={downloadState.audio.progress} />
+				</div>
 			</div>
-		</div>
+		</>
 	)
 }
