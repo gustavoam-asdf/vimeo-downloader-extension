@@ -18,17 +18,21 @@ interface DownloadState {
 }
 
 export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
-	const [masterJsonUrl, setMasterJsonUrl] = useState(resolvedMasterJsonUrl)
-
-	useEffect(() => {
-		if (!resolvedMasterJsonUrl) return
-		setMasterJsonUrl(resolvedMasterJsonUrl)
-	}, [resolvedMasterJsonUrl])
-
 	const [betterMediaResolved, setBetterMediaResolved] = useState<{
 		video: MediaResolved
 		audio: MediaResolved | undefined
 	}>()
+
+	const [masterJsonUrl, setMasterJsonUrl] = useState(resolvedMasterJsonUrl)
+
+	useEffect(() => {
+		if (!resolvedMasterJsonUrl) {
+			setBetterMediaResolved(undefined)
+			return
+		}
+		setMasterJsonUrl(resolvedMasterJsonUrl)
+	}, [resolvedMasterJsonUrl])
+
 	const [downloadState, setDownloadState] = useState<DownloadState>({
 		video: {
 			isDownloading: false,
