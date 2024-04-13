@@ -84,6 +84,11 @@ export function useVimeoVideoDB() {
 				request.onsuccess = () => resolve()
 				request.onerror = () => reject(request.error)
 			})
+				.then(
+					() => chrome.storage.session.set({
+						["downloaded-video"]: vimeoVideo.id
+					})
+				)
 		},
 		[db]
 	)
