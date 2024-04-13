@@ -22,9 +22,9 @@ function App() {
 	}, [])
 
 	useEffect(() => {
-		const tabUpdateHandler = (_1: number, _2: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
+		const tabUpdateHandler = async (tabId: number, _2: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
+			if (tabId === -1) return
 			setCurrentTab(tab)
-			setMasterJsonUrl(undefined)
 		}
 
 		chrome.tabs.onUpdated.addListener(tabUpdateHandler)
