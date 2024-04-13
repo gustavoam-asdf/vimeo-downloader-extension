@@ -73,13 +73,13 @@ export function DownloadVideo({
 			<CardHeader>
 				<CardTitle>Video encontrado</CardTitle>
 			</CardHeader>
-			<CardContent className="grid grid-cols-5 gap-2 items-center">
-				<h2 className="text-primary-foreground font-bold text-sm text-pretty col-span-3">
+			<CardContent>
+				<h2 className="text-primary-foreground font-bold text-sm text-pretty mb-2">
 					{name}
 				</h2>
 				<Button
 					type="button"
-					className="text-wrap col-span-2"
+					className="text-wrap w-full"
 					onClick={handleDownload}
 					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !mediaResolved}
 				>
