@@ -22,8 +22,7 @@ function App() {
 	}, [])
 
 	useEffect(() => {
-		const tabUpdateHandler = async (tabId: number, _2: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
-			if (tabId === -1) return
+		const tabUpdateHandler = async (_1: number, _2: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
 			setCurrentTab(tab)
 		}
 
