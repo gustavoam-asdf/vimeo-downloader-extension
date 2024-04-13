@@ -45,6 +45,18 @@ export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 
 		const getBetterMedia = async () => {
 			const masterUrl = new URL(masterJsonUrl).toString()
+
+			const cachedMap = await chrome.storage.session.get(masterUrl)
+
+			const cached = cachedMap[masterUrl] as {
+				video: MediaResolved
+				audio: MediaResolved | undefined
+			}
+
+			if (cached) {
+				return cached
+			}
+
 			const response = await fetchWithRetry({ url: masterUrl })
 			const master = await response.json() as MasterVideo
 
@@ -78,10 +90,16 @@ export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 				}
 				: undefined
 
-			return {
+			const mediaResolved = {
 				video: videoResolved,
 				audio: audioResolved
 			}
+
+			await chrome.storage.session.set({
+				[masterUrl]: mediaResolved
+			})
+
+			return mediaResolved
 		}
 
 		getBetterMedia()
