@@ -53,29 +53,30 @@ function App() {
 	}, [currentTab])
 
 	useEffect(() => {
-		const onChangeStorage = (rawChanges: { [key: string]: chrome.storage.StorageChange }) => {
-			const changes = Object.entries(rawChanges) as [key: "new-master-json", {
+		const onChangeStorage = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+			const newMasterJson = changes["new-master-json"]
+			if (!newMasterJson) return
+
+			const { oldValue, newValue } = newMasterJson as {
 				oldValue: {
 					tabId: number
 					url: string
-				},
+				} | undefined,
 				newValue: {
 					tabId: number
 					url: string
-				}
-			}][]
-
-			for (let [key, { oldValue, newValue }] of changes) {
-				if (key !== "new-master-json") return
-
-				const referSameTab = oldValue.tabId === newValue.tabId && currentTab?.id === oldValue.tabId
-
-				if (!referSameTab) return
-
-				if (oldValue.url === newValue.url) return
-
-				setMasterJsonUrl(newValue.url as string)
+				} | undefined
 			}
+
+			if (!oldValue || !newValue) return
+
+			const referSameTab = oldValue.tabId === newValue.tabId && currentTab?.id === oldValue.tabId
+
+			if (!referSameTab) return
+
+			if (oldValue.url === newValue.url) return
+
+			setMasterJsonUrl(newValue.url as string)
 		}
 
 		chrome.storage.session.onChanged.addListener(onChangeStorage);
