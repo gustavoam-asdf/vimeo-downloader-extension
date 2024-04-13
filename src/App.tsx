@@ -37,10 +37,16 @@ function App() {
 	useEffect(() => {
 		const getMasterJsonUrl = async () => {
 			if (!currentTab?.id) return
-			const masterJsonUrlSaved = await chrome.storage.session.get(currentTab.id.toString())
-			const masterJsonUrl = masterJsonUrlSaved[currentTab.id.toString()] as string
+			const masterJsonUrlSavedMap = await chrome.storage.session.get("new-master-json")
+			const masterJsonUrlSaved = masterJsonUrlSavedMap["new-master-json"] as {
+				tabId: number
+				url: string
+			}
 
-			setMasterJsonUrl(masterJsonUrl)
+			if (!masterJsonUrlSaved) return
+			if (masterJsonUrlSaved.tabId !== currentTab.id && masterJsonUrlSaved.tabId !== -1) return
+
+			setMasterJsonUrl(masterJsonUrlSaved.url)
 		}
 
 		getMasterJsonUrl()
