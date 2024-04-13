@@ -2,7 +2,8 @@ import { VimeoVideo, useVimeoVideoDB } from './hooks/useVimeoVideoDB'
 import { useEffect, useState } from 'react'
 
 import { DownloadVideo } from './components/DownloadVideo'
-import { useFfmpeg } from './hooks/useFfmpeg'
+
+//import { useFfmpeg } from './hooks/useFfmpeg'
 
 function App() {
 	const { isReady: dbIsReady, listVimeoVideos } = useVimeoVideoDB()
@@ -78,7 +79,7 @@ function App() {
 		getVimeoVideos()
 	}, [currentTab, dbIsReady])
 
-	const { isLoaded, videoRef, messageRef, load, transcode } = useFfmpeg()
+	//const { isLoaded, videoRef, messageRef, load, transcode } = useFfmpeg()
 
 	return (
 		<main className="min-w-[30rem] max-w-[30rem] px-4 py-6 dark bg-background">

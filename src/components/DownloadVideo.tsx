@@ -1,3 +1,4 @@
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { VimeoVideo, useVimeoVideoDB } from "@/hooks/useVimeoVideoDB"
 
 import { Button } from "./ui/button"
@@ -68,11 +69,11 @@ export function DownloadVideo({
 	)
 
 	return (
-		<>
-			<h1 className="mb-2 text-primary font-bold text-xl">
-				Video encontrado
-			</h1>
-			<div className="grid grid-cols-5 gap-2 items-center">
+		<Card>
+			<CardHeader>
+				<CardTitle>Video encontrado</CardTitle>
+			</CardHeader>
+			<CardContent className="grid grid-cols-5 gap-2 items-center">
 				<h2 className="text-primary-foreground font-bold text-sm text-pretty col-span-3">
 					{name}
 				</h2>
@@ -90,17 +91,17 @@ export function DownloadVideo({
 								: 'No hay contenido multimedia'
 					}
 				</Button>
-			</div>
-			<div className={`overflow-hidden transition-[height] ${downloadState.video.isDownloading || downloadState.audio.isDownloading ? "h-20 my-2" : "h-0"}`}>
-				<div className={`mb-2 transition-opacity ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
+			</CardContent>
+			<CardFooter className={`overflow-hidden flex-col transition-[height] ${downloadState.video.isDownloading || downloadState.audio.isDownloading ? "h-20 my-2" : "h-0 p-0"}`}>
+				<div className={`mb-2 transition-opacity w-full ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
 					<p className="text-foreground mb-1">Obteniendo video</p>
 					<Progress value={downloadState.video.progress} />
 				</div>
-				<div className={`mb-2 transition-opacity ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
+				<div className={`mb-2 transition-opacity w-full ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
 					<p className="text-foreground mb-1">Obteniendo audio</p>
 					<Progress value={downloadState.audio.progress} />
 				</div>
-			</div>
-		</>
+			</CardFooter>
+		</Card>
 	)
 }
