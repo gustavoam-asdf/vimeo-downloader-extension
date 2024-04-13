@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
 import { VimeoVideo, useVimeoVideoDB } from "@/hooks/useVimeoVideoDB"
 
 import { Button } from "./ui/button"
@@ -92,12 +92,12 @@ export function DownloadVideo({
 					}
 				</Button>
 			</CardContent>
-			<CardFooter className={`overflow-hidden flex-col transition-[height] ${downloadState.video.isDownloading || downloadState.audio.isDownloading ? "h-20 my-2" : "h-0 p-0"}`}>
-				<div className={`mb-2 transition-opacity w-full ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
+			<CardFooter className={`overflow-hidden flex-col justify-between gap-2 transition-[height] ${downloadState.video.isDownloading || downloadState.audio.isDownloading ? "h-24 my-2" : "h-0 p-0"}`}>
+				<div className={`transition-opacity w-full ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
 					<p className="text-foreground mb-1">Obteniendo video</p>
 					<Progress value={downloadState.video.progress} />
 				</div>
-				<div className={`mb-2 transition-opacity w-full ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
+				<div className={`transition-opacity w-full ${downloadState.video.isDownloading ? "" : "opacity-0"}`}>
 					<p className="text-foreground mb-1">Obteniendo audio</p>
 					<Progress value={downloadState.audio.progress} />
 				</div>
