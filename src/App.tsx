@@ -41,12 +41,16 @@ function App() {
 			const masterJsonUrlSaved = masterJsonUrlSavedMap["new-master-json"] as {
 				tabId: number
 				url: string
-			}
+			} | undefined
 
 			if (!masterJsonUrlSaved) return
-			if (masterJsonUrlSaved.tabId !== currentTab.id && masterJsonUrlSaved.tabId !== -1) return
 
-			setMasterJsonUrl(masterJsonUrlSaved.url)
+			if (masterJsonUrlSaved.tabId === currentTab.id && masterJsonUrlSaved.tabId !== -1) {
+				setMasterJsonUrl(masterJsonUrlSaved.url)
+				return
+			}
+
+			setMasterJsonUrl(undefined)
 		}
 
 		getMasterJsonUrl()
@@ -70,13 +74,13 @@ function App() {
 
 			if (!oldValue || !newValue) return
 
-			const referSameTab = oldValue.tabId === newValue.tabId && currentTab?.id === oldValue.tabId
+			const referSameTab = currentTab?.id === newValue.tabId
 
 			if (!referSameTab) return
 
 			if (oldValue.url === newValue.url) return
 
-			setMasterJsonUrl(newValue.url as string)
+			setMasterJsonUrl(newValue.url)
 		}
 
 		chrome.storage.session.onChanged.addListener(onChangeStorage);
