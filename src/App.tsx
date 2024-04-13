@@ -22,14 +22,18 @@ function App() {
 	}, [])
 
 	useEffect(() => {
-		const tabUpdateHandler = async (_1: number, _2: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
+		const tabUpdateHandler = async (tabId: number, info: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
+			if (currentTab?.id === tabId && info.audible === undefined) {
+				await chrome.storage.session.remove("new-master-json")
+				setMasterJsonUrl(undefined)
+			}
 			setCurrentTab(tab)
 		}
 
 		chrome.tabs.onUpdated.addListener(tabUpdateHandler)
 
 		return () => chrome.tabs.onUpdated.removeListener(tabUpdateHandler)
-	}, [])
+	}, [currentTab])
 
 	useEffect(() => {
 		const onChangeStorage = (changes: { [key: string]: chrome.storage.StorageChange }) => {
@@ -54,7 +58,10 @@ function App() {
 
 			const referSameTab = currentTab?.id === newValue.tabId
 
-			if (!referSameTab) return
+			if (!referSameTab) {
+				setMasterJsonUrl(undefined)
+				return
+			}
 
 			if (oldValue?.url === newValue.url) return
 
