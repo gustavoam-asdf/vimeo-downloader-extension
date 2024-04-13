@@ -88,7 +88,7 @@ export function DownloadVideo({
 							? 'Obteniendo ...'
 							: mediaResolved
 								? 'Obtener video'
-								: 'No hay contenido multimedia'
+								: 'Debe iniciar el video primero'
 					}
 				</Button>
 			</CardContent>
