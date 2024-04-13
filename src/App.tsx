@@ -47,21 +47,34 @@ function App() {
 	}, [currentTab])
 
 	useEffect(() => {
-		const onChangeStorage = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-			for (let [key, { oldValue, newValue }] of Object.entries(changes)) {
-				const isCurrentTab = key === currentTab?.id?.toString()
+		const onChangeStorage = (rawChanges: { [key: string]: chrome.storage.StorageChange }) => {
+			const changes = Object.entries(rawChanges) as [key: "new-master-json", {
+				oldValue: {
+					tabId: number
+					url: string
+				},
+				newValue: {
+					tabId: number
+					url: string
+				}
+			}][]
 
-				if (!isCurrentTab) return
+			for (let [key, { oldValue, newValue }] of changes) {
+				if (key !== "new-master-json") return
 
-				if (oldValue === newValue) return
+				const referSameTab = oldValue.tabId === newValue.tabId && currentTab?.id === oldValue.tabId
 
-				setMasterJsonUrl(newValue as string)
+				if (!referSameTab) return
+
+				if (oldValue.url === newValue.url) return
+
+				setMasterJsonUrl(newValue.url as string)
 			}
 		}
 
-		chrome.storage.onChanged.addListener(onChangeStorage);
+		chrome.storage.session.onChanged.addListener(onChangeStorage);
 
-		return () => chrome.storage.onChanged.removeListener(onChangeStorage)
+		return () => chrome.storage.session.onChanged.removeListener(onChangeStorage)
 	}, [currentTab])
 
 	useEffect(() => {
@@ -82,7 +95,7 @@ function App() {
 	//const { isLoaded, videoRef, messageRef, load, transcode } = useFfmpeg()
 
 	return (
-		<main className="min-w-[30rem] max-w-[30rem] px-4 py-6 dark bg-background">
+		<main className="min-w-[25rem] max-w-[25rem] px-4 py-6 dark bg-background">
 			<DownloadVideo masterJsonUrl={masterJsonUrl} name={currentTab?.title} tabUrl={currentTab?.url} />
 			<ul>
 				{vimeoVideos.map(vimeoVideo => (
