@@ -22,39 +22,15 @@ function App() {
 	}, [])
 
 	useEffect(() => {
-		if (!currentTab) return
-
-		const tabUpdateHandler = (tabId: number, _: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
-			if (tabId !== currentTab.id) return
+		const tabUpdateHandler = (_1: number, _2: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab) => {
 			setCurrentTab(tab)
+			setMasterJsonUrl(undefined)
 		}
 
 		chrome.tabs.onUpdated.addListener(tabUpdateHandler)
 
 		return () => chrome.tabs.onUpdated.removeListener(tabUpdateHandler)
-	}, [currentTab])
-
-	useEffect(() => {
-		const getMasterJsonUrl = async () => {
-			if (!currentTab?.id) return
-			const masterJsonUrlSavedMap = await chrome.storage.session.get("new-master-json")
-			const masterJsonUrlSaved = masterJsonUrlSavedMap["new-master-json"] as {
-				tabId: number
-				url: string
-			} | undefined
-
-			if (!masterJsonUrlSaved) return
-
-			if (masterJsonUrlSaved.tabId === currentTab.id && masterJsonUrlSaved.tabId !== -1) {
-				setMasterJsonUrl(masterJsonUrlSaved.url)
-				return
-			}
-
-			setMasterJsonUrl(undefined)
-		}
-
-		getMasterJsonUrl()
-	}, [currentTab])
+	}, [])
 
 	useEffect(() => {
 		const onChangeStorage = (changes: { [key: string]: chrome.storage.StorageChange }) => {
@@ -72,13 +48,16 @@ function App() {
 				} | undefined
 			}
 
-			if (!oldValue || !newValue) return
+			if (!newValue) {
+				setMasterJsonUrl(undefined)
+				return
+			}
 
 			const referSameTab = currentTab?.id === newValue.tabId
 
 			if (!referSameTab) return
 
-			if (oldValue.url === newValue.url) return
+			if (oldValue?.url === newValue.url) return
 
 			setMasterJsonUrl(newValue.url)
 		}
