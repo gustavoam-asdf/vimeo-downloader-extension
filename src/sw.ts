@@ -1,5 +1,3 @@
-//import { FFmpeg } from '@ffmpeg/ffmpeg'
-
 chrome.webRequest.onCompleted.addListener(
 	async details => {
 		if (details.tabId === -1) return
@@ -19,22 +17,3 @@ chrome.webRequest.onCompleted.addListener(
 		],
 	},
 )
-
-//const ffmpeg = new FFmpeg()
-
-chrome.storage.session.onChanged.addListener(changes => {
-	const downloadedVideo = changes["downloaded-video"]
-	if (!downloadedVideo) return
-
-	/**
-	 * @type {{
-	* 	oldValue: unknown | undefined
-	* 	newValue: import("crypto").UUID | undefined
-	* }}
-	*/
-	const { newValue } = downloadedVideo
-
-	if (!newValue) return
-
-	console.log({ newValue })
-});
