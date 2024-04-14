@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 
 import { Button } from './components/ui/button'
 import { DownloadVideo } from './components/DownloadVideo'
-import { processVimeoVideo } from './lib/processVimeoVideo'
+import { useFfmpeg } from './hooks/useFfmpeg'
 
 //import { useFfmpeg } from './hooks/useFfmpeg'
 
@@ -89,34 +89,31 @@ function App() {
 		getVimeoVideos()
 	}, [currentTab, dbIsReady])
 
+	const { load, mux } = useFfmpeg()
+
 	const handleClick = async () => {
 		if (!currentTab?.id) return
+		await load()
+
 		const vimeoId = "1e803d9e-5e9d-43d1-974c-a8adc04b4de0"
 
 		const vimeoVideo = await getVimeoVideoById(vimeoId)
 
 		if (!vimeoVideo) return
 
-		const videoContentUrl = URL.createObjectURL(vimeoVideo.videoContent)
-		const audioContentUrl = vimeoVideo.audioContent
-			? URL.createObjectURL(vimeoVideo.audioContent)
-			: undefined
+		if (!vimeoVideo.audioContent) return
 
-		await chrome.scripting.executeScript({
-			target: { tabId: currentTab.id },
-			func: processVimeoVideo,
-			args: [{
-				name: vimeoVideo.name,
-				audioUrl: audioContentUrl,
-				videoUrl: videoContentUrl
-			}]
+		const muxed = await mux({
+			audio: vimeoVideo.audioContent,
+			video: vimeoVideo.videoContent
 		})
-			.catch(console.error)
 
-		URL.revokeObjectURL(videoContentUrl)
-		if (audioContentUrl) {
-			URL.revokeObjectURL(audioContentUrl)
-		}
+		const videoContentUrl = URL.createObjectURL(muxed)
+
+		await chrome.downloads.download({
+			url: videoContentUrl,
+			filename: `vimeo-downloader/${vimeoVideo.name}.mp4`,
+		})
 	}
 
 	return (

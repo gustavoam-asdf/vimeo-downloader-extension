@@ -1,40 +1,21 @@
-import { useRef, useState } from 'react'
-
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile } from '@ffmpeg/util'
+import { useRef } from 'react'
 
 export function useFfmpeg() {
-	const [isLoaded, setIsLoaded] = useState(false)
 	const ffmpegRef = useRef(new FFmpeg())
-	const videoRef = useRef<HTMLVideoElement>(null)
-	const messageRef = useRef<HTMLParagraphElement>(null)
 
 	const load = async () => {
 		const ffmpeg = ffmpegRef.current
 		ffmpeg.on('log', ({ message }) => {
-			if (!messageRef.current) return
-			messageRef.current.innerHTML = message
 			console.log(message)
 		})
 		// toBlobURL is used to bypass CORS issue, urls with the same
 		// domain can be used directly.
 		await ffmpeg.load({
-			coreURL: "/ffmpeg/ffmpeg-core.js",
-			wasmURL: "/ffmpeg/ffmpeg-core.wasm"
+			coreURL: chrome.runtime.getURL('ffmpeg/core/ffmpeg-core.js'),
+			wasmURL: chrome.runtime.getURL('ffmpeg/core/ffmpeg-core.wasm'),
 		})
-		setIsLoaded(true)
-	}
-
-	const transcode = async () => {
-		const ffmpeg = ffmpegRef.current
-		await ffmpeg.writeFile('input.webm', await fetchFile('https://raw.githubusercontent.com/ffmpegwasm/testdata/master/Big_Buck_Bunny_180_10s.webm'))
-		await ffmpeg.exec(['-i', 'input.webm', 'output.mp4'])
-		const data = await ffmpeg.readFile('output.mp4') as Uint8Array
-
-		if (videoRef.current) {
-			videoRef.current.src =
-				URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
-		}
 	}
 
 	const mux = async ({
@@ -55,19 +36,11 @@ export function useFfmpeg() {
 		])
 		const data = await ffmpeg.readFile('output.mp4') as Uint8Array
 
-		if (videoRef.current) {
-			const url = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }))
-			console.log({ url })
-			videoRef.current.src = url
-		}
+		return new Blob([data.buffer], { type: 'video/mp4' })
 	}
 
 	return {
-		isLoaded,
-		videoRef,
-		messageRef,
 		load,
-		transcode,
 		mux,
 	}
 }
