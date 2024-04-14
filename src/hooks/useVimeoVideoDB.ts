@@ -59,9 +59,8 @@ export function useVimeoVideoDB() {
 
 			const transaction = db.transaction('vimeoVideo', 'readonly')
 			const store = transaction.objectStore('vimeoVideo')
-			const index = store.index('id')
 
-			const request = index.get(id)
+			const request = store.get(id)
 
 			return new Promise<VimeoVideo | undefined>((resolve, reject) => {
 				request.onsuccess = () => resolve(request.result)
