@@ -69,7 +69,7 @@ function App() {
 	}, [currentTab])
 
 	return (
-		<main className="min-w-[25rem] max-w-[25rem] px-4 py-6 dark bg-background">
+		<main className="min-w-[25rem] max-w-[25rem] px-4 py-6 dark bg-background flex flex-col gap-4">
 			<DownloadVideo masterJsonUrl={masterJsonUrl} name={currentTab?.title} tabUrl={currentTab?.url} />
 			<VideosLists currentTab={currentTab} />
 		</main>

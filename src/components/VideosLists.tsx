@@ -1,4 +1,4 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { VimeoVideo, useVimeoVideoDB } from "@/hooks/useVimeoVideoDB"
 import { useEffect, useState } from "react"
 
