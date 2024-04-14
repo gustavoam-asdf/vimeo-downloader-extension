@@ -13,7 +13,7 @@ type Params = {
 export function VideosLists({
 	currentTab,
 }: Params) {
-	const [vimeoVideos, setVimeoVideos] = useState<Pick<VimeoVideo, "id" | "name">[]>([])
+	const [vimeoVideos, setVimeoVideos] = useState<Pick<VimeoVideo, "id" | "name">[]>()
 	const { isReady: dbIsReady, listVimeoVideos, getVimeoVideoById, deleteVimeoVideo } = useVimeoVideoDB()
 	const [isWorking, setIsWorking] = useState(false)
 	const { load, mux } = useFfmpeg()
@@ -29,13 +29,29 @@ export function VideosLists({
 
 			const vimeoVideos = await listVimeoVideos(currentTab.url)
 
-			console.log({ vimeoVideos })
-
 			setVimeoVideos(vimeoVideos)
 		}
 
 		getVimeoVideos()
 	}, [currentTab, dbIsReady])
+
+	useEffect(() => {
+		if (!dbIsReady) return
+
+		const onVimeoVideoListUpdated = async () => {
+			if (!currentTab?.url) return
+
+			const vimeoVideos = await listVimeoVideos(currentTab.url)
+
+			setVimeoVideos(vimeoVideos)
+		};
+
+		window.addEventListener("vimeo-video-list-updated", onVimeoVideoListUpdated);
+
+		return () => {
+			window.removeEventListener("vimeo-video-list-updated", onVimeoVideoListUpdated);
+		};
+	}, [currentTab, dbIsReady]);
 
 	const downloadVideo = async (videoId: UUID) => {
 		if (isWorking) return
@@ -80,16 +96,20 @@ export function VideosLists({
 		setIsWorking(false)
 	}
 
+	if (vimeoVideos && vimeoVideos.length === 0) {
+		return null
+	}
+
 	return (
 		<Card>
 			<CardHeader>
 				<CardTitle>Videos obtenidos</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<ul className="flex flex-col gap-4">
-					{vimeoVideos.map(vimeoVideo => (
+				<ul className="flex flex-col gap-6">
+					{vimeoVideos?.map(vimeoVideo => (
 						<li key={vimeoVideo.id} className="flex gap-2 items-center">
-							<p className="text-primary-foreground text-sm">{vimeoVideo.name}</p>
+							<p className="text-primary-foreground text-sm font-semibold">{vimeoVideo.name}</p>
 							<Button
 								onClick={() => downloadVideo(vimeoVideo.id)}
 								disabled={isWorking}

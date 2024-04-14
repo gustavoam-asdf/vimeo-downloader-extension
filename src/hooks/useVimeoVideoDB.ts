@@ -80,7 +80,13 @@ export function useVimeoVideoDB() {
 			const request = store.delete(id)
 
 			return new Promise<void>((resolve, reject) => {
-				request.onsuccess = () => resolve()
+				request.onsuccess = () => {
+					const customEvent = new CustomEvent('vimeo-video-list-updated', {
+						bubbles: true,
+					})
+					window.dispatchEvent(customEvent)
+					resolve()
+				}
 				request.onerror = () => reject(request.error)
 			})
 		},
@@ -97,7 +103,13 @@ export function useVimeoVideoDB() {
 			const request = store.add(vimeoVideo)
 
 			return new Promise<void>((resolve, reject) => {
-				request.onsuccess = () => resolve()
+				request.onsuccess = () => {
+					const customEvent = new CustomEvent('vimeo-video-list-updated', {
+						bubbles: true,
+					})
+					window.dispatchEvent(customEvent)
+					resolve()
+				}
 				request.onerror = () => reject(request.error)
 			})
 				.then(

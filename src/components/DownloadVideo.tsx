@@ -74,7 +74,7 @@ export function DownloadVideo({
 				<CardTitle>Video encontrado</CardTitle>
 			</CardHeader>
 			<CardContent>
-				<h2 className="text-primary-foreground font-bold text-sm text-pretty mb-2">
+				<h2 className="text-primary-foreground font-bold text-sm text-pretty mb-3">
 					{name}
 				</h2>
 				<Button
