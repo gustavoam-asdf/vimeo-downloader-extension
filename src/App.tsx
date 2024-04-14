@@ -1,12 +1,14 @@
 import { VimeoVideo, useVimeoVideoDB } from './hooks/useVimeoVideoDB'
 import { useEffect, useState } from 'react'
 
+import { Button } from './components/ui/button'
 import { DownloadVideo } from './components/DownloadVideo'
+import { processVimeoVideo } from './lib/processVimeoVideo'
 
 //import { useFfmpeg } from './hooks/useFfmpeg'
 
 function App() {
-	const { isReady: dbIsReady, listVimeoVideos } = useVimeoVideoDB()
+	const { isReady: dbIsReady, listVimeoVideos, getVimeoVideoById } = useVimeoVideoDB()
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
 	const [vimeoVideos, setVimeoVideos] = useState<VimeoVideo[]>([])
@@ -87,7 +89,35 @@ function App() {
 		getVimeoVideos()
 	}, [currentTab, dbIsReady])
 
-	//const { isLoaded, videoRef, messageRef, load, transcode } = useFfmpeg()
+	const handleClick = async () => {
+		if (!currentTab?.id) return
+		const vimeoId = "1e803d9e-5e9d-43d1-974c-a8adc04b4de0"
+
+		const vimeoVideo = await getVimeoVideoById(vimeoId)
+
+		if (!vimeoVideo) return
+
+		const videoContentUrl = URL.createObjectURL(vimeoVideo.videoContent)
+		const audioContentUrl = vimeoVideo.audioContent
+			? URL.createObjectURL(vimeoVideo.audioContent)
+			: undefined
+
+		await chrome.scripting.executeScript({
+			target: { tabId: currentTab.id },
+			func: processVimeoVideo,
+			args: [{
+				name: vimeoVideo.name,
+				audioUrl: audioContentUrl,
+				videoUrl: videoContentUrl
+			}]
+		})
+			.catch(console.error)
+
+		URL.revokeObjectURL(videoContentUrl)
+		if (audioContentUrl) {
+			URL.revokeObjectURL(audioContentUrl)
+		}
+	}
 
 	return (
 		<main className="min-w-[25rem] max-w-[25rem] px-4 py-6 dark bg-background">
@@ -100,20 +130,7 @@ function App() {
 					</li>
 				))}
 			</ul>
-			{
-				/* isLoaded
-					? (
-						<>
-							<video ref={videoRef} controls></video><br />
-							<button onClick={transcode}>Transcode webm to mp4</button>
-							<p ref={messageRef}></p>
-							<p>Open Developer Tools (Ctrl+Shift+I) to View Logs</p>
-						</>
-					)
-					: (
-						<button onClick={load}>Load ffmpeg-core (~31 MB)</button>
-					) */
-			}
+			<Button onClick={handleClick}>Unir</Button>
 		</main>
 	)
 }
