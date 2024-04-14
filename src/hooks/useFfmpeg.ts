@@ -36,6 +36,10 @@ export function useFfmpeg() {
 		])
 		const data = await ffmpeg.readFile('output.mp4') as Uint8Array
 
+		await ffmpeg.deleteFile('video.m4v')
+		await ffmpeg.deleteFile('audio.m4a')
+		await ffmpeg.deleteFile('output.mp4')
+
 		return new Blob([data.buffer], { type: 'video/mp4' })
 	}
 
