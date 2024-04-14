@@ -45,8 +45,8 @@ export function useVimeoVideoDB() {
 
 			const request = urlIndex.getAll(url);
 
-			return new Promise<VimeoVideo[]>((resolve, reject) => {
-				request.onsuccess = () => resolve(request.result)
+			return new Promise<Pick<VimeoVideo, "id" | "name">[]>((resolve, reject) => {
+				request.onsuccess = () => resolve(request.result.map(({ id, name }) => ({ id, name })))
 				request.onerror = () => reject(request.error)
 			})
 		},
@@ -64,6 +64,23 @@ export function useVimeoVideoDB() {
 
 			return new Promise<VimeoVideo | undefined>((resolve, reject) => {
 				request.onsuccess = () => resolve(request.result)
+				request.onerror = () => reject(request.error)
+			})
+		},
+		[db]
+	)
+
+	const deleteVimeoVideo = useCallback(
+		async (id: VimeoVideo["id"]) => {
+			if (!db) return
+
+			const transaction = db.transaction('vimeoVideo', 'readwrite')
+			const store = transaction.objectStore('vimeoVideo')
+
+			const request = store.delete(id)
+
+			return new Promise<void>((resolve, reject) => {
+				request.onsuccess = () => resolve()
 				request.onerror = () => reject(request.error)
 			})
 		},
@@ -97,6 +114,7 @@ export function useVimeoVideoDB() {
 		isReady,
 		listVimeoVideos,
 		getVimeoVideoById,
+		deleteVimeoVideo,
 		saveVimeoVideo,
 	}
 }
