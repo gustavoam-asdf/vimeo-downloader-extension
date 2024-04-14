@@ -10,6 +10,16 @@
 	"action": {
 		"default_popup": "index.html"
 	},
+	"web_accessible_resources": [
+		{
+			"resources": [
+				"ffmpeg/*"
+			],
+			"matches": [
+				"https://*/*"
+			]
+		}
+	],
 	"permissions": [
 		"tabs",
 		"scripting",
