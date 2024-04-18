@@ -5,7 +5,8 @@
 	"version": "1.0.0",
 	"description": "Download Vimeo videos with a single click!",
 	"icons": {
-		"256": "icons/icon-256x256.png"
+		"256": "icons/icon-256x256.png",
+		"512": "icons/icon-512x512.png"
 	},
 	"action": {
 		"default_popup": "index.html"
