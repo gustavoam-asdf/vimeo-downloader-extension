@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { DownloadVideo } from './components/DownloadVideo'
 import { VideosLists } from './components/VideosLists'
 
+const MASTER_JSON_KEY = "new-master-json"
+
 function App() {
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
 	const [masterJsonUrl, setMasterJsonUrl] = useState<string>()
@@ -32,7 +34,7 @@ function App() {
 
 	useEffect(() => {
 		const onChangeStorage = (changes: { [key: string]: chrome.storage.StorageChange }) => {
-			const newMasterJson = changes["new-master-json"]
+			const newMasterJson = changes[MASTER_JSON_KEY]
 			if (!newMasterJson) return
 
 			const { oldValue, newValue } = newMasterJson as {
@@ -66,6 +68,29 @@ function App() {
 		chrome.storage.session.onChanged.addListener(onChangeStorage);
 
 		return () => chrome.storage.session.onChanged.removeListener(onChangeStorage)
+	}, [currentTab])
+
+	useEffect(() => {
+		const getLatestMasterJson = async () => {
+			const resultMap = await chrome.storage.session.get(MASTER_JSON_KEY)
+			const result = resultMap[MASTER_JSON_KEY] as {
+				tabId: number
+				url: string
+			} | undefined
+
+			if (!result) return
+
+			const referSameTab = currentTab?.id === result.tabId
+
+			if (!referSameTab) {
+				console.log("Not refer same tab")
+				setMasterJsonUrl(undefined)
+				return
+			}
+
+			setMasterJsonUrl(result.url)
+		}
+		getLatestMasterJson()
 	}, [currentTab])
 
 	return (
