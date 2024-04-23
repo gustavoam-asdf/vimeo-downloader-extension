@@ -83,7 +83,6 @@ function App() {
 			const referSameTab = currentTab?.id === result.tabId
 
 			if (!referSameTab) {
-				console.log("Not refer same tab")
 				setMasterJsonUrl(undefined)
 				return
 			}
