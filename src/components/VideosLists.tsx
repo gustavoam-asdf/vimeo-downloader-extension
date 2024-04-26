@@ -107,21 +107,23 @@ export function VideosLists({
 			</CardHeader>
 			<CardContent>
 				<ul className="flex flex-col gap-6">
-					{vimeoVideos?.map(vimeoVideo => (
-						<li key={vimeoVideo.id} className="flex gap-2 items-center">
-							<p className="text-primary-foreground text-sm font-semibold">{vimeoVideo.name}</p>
-							<Button
-								onClick={() => downloadVideo(vimeoVideo.id)}
-								disabled={isWorking}
-							>
-								{
-									isWorking
-										? 'Descargando ...'
-										: 'Descargar'
-								}
-							</Button>
-						</li>
-					))}
+					{
+						vimeoVideos?.map(vimeoVideo => (
+							<li key={vimeoVideo.id} className="flex gap-2 items-center justify-between">
+								<p className="text-primary-foreground text-sm font-semibold">{vimeoVideo.name}</p>
+								<Button
+									onClick={() => downloadVideo(vimeoVideo.id)}
+									disabled={isWorking}
+								>
+									{
+										isWorking
+											? 'Descargando ...'
+											: 'Descargar'
+									}
+								</Button>
+							</li>
+						))
+					}
 				</ul>
 			</CardContent>
 		</Card>
