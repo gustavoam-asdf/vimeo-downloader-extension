@@ -15,7 +15,7 @@ module.exports = {
 			{ allowConstantExport: true },
 		],
 	},
-	"globals": [
-		"chrome"
-	]
+	globals: {
+		chrome: "readonly",
+	}
 }
