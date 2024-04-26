@@ -61,15 +61,18 @@ export function VideosLists({
 
 		if (!vimeoVideo) return
 
+		const filename = `vimeo-downloader/${vimeoVideo.name}.mp4`
+
+		const createDownloadOptions: (url: string) => chrome.downloads.DownloadOptions = (url) => ({
+			url,
+			filename,
+			saveAs: true,
+		})
+
 		if (!vimeoVideo.audioContent) {
 			const videoUrl = URL.createObjectURL(vimeoVideo.videoContent)
 
-			const filename = `vimeo-downloader/${vimeoVideo.name}.mp4`
-
-			await chrome.downloads.download({
-				url: videoUrl,
-				filename,
-			})
+			await chrome.downloads.download(createDownloadOptions(videoUrl))
 
 			URL.revokeObjectURL(videoUrl)
 
@@ -86,10 +89,9 @@ export function VideosLists({
 
 		const videoContentUrl = URL.createObjectURL(muxed)
 
-		await chrome.downloads.download({
-			url: videoContentUrl,
-			filename: `vimeo-downloader/${vimeoVideo.name}.mp4`,
-		})
+		await chrome.downloads.download(
+			createDownloadOptions(videoContentUrl)
+		)
 
 		URL.revokeObjectURL(videoContentUrl)
 
