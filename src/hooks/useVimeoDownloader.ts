@@ -24,6 +24,8 @@ interface VideoResourcesResolved {
 	audio?: MediaResolved
 }
 
+const VIDEO_MAX_HEIGHT = 1080
+
 export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 	const [betterVideoResourcesResolved, setBetterVideoResourcesResolved] = useState<VideoResourcesResolved>()
 
@@ -65,7 +67,9 @@ export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 			const response = await fetchWithRetry({ url: masterUrl })
 			const master = await response.json() as MasterVideo
 
-			const availableVideos = [...master.video].sort((a, b) => a.avg_bitrate - b.avg_bitrate)
+			const availableVideos = [...master.video]
+				.filter(video => video.height <= VIDEO_MAX_HEIGHT)
+				.sort((a, b) => a.avg_bitrate - b.avg_bitrate)
 			const availableAudios = master.audio
 				? [...master.audio].sort((a, b) => a.avg_bitrate - b.avg_bitrate)
 				: undefined
