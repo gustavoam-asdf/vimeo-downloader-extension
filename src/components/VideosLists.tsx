@@ -64,9 +64,11 @@ export function VideosLists({
 		if (!vimeoVideo.audioContent) {
 			const videoUrl = URL.createObjectURL(vimeoVideo.videoContent)
 
+			const filename = `vimeo-downloader/${vimeoVideo.name}.mp4`
+
 			await chrome.downloads.download({
 				url: videoUrl,
-				filename: `vimeo-downloader/${vimeoVideo.name}.mp4`,
+				filename,
 			})
 
 			URL.revokeObjectURL(videoUrl)
