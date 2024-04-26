@@ -10,14 +10,21 @@ export interface Media {
 	bitrate: number
 	avg_bitrate: number
 	duration: number
-	channels?: number
-	sample_rate?: number
-	max_segment_duration: number
 	init_segment: string
 	index_segment: string
 	segments: Segment[]
-	audio_primary?: boolean
-	framerate?: number
-	width?: number
-	height?: number
+}
+
+export interface AudioMedia extends Media {
+	channels: number
+	sample_rate: number
+	max_segment_duration: number
+	audio_primary: boolean
+}
+
+export interface VideoMedia extends Media {
+	framerate: number
+	width: number
+	height: number
+	max_segment_duration: number
 }
