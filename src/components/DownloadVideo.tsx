@@ -18,25 +18,25 @@ export function DownloadVideo({
 	tabUrl,
 }: Params) {
 	const { isReady: dbIsReady, saveVimeoVideo } = useVimeoVideoDB()
-	const { mediaResolved, downloadState, processVideoMedia, processAudioMedia } = useVimeoDownloader(masterJsonUrl)
+	const { videoResourcesResolved, downloadState, processVideoMedia, processAudioMedia } = useVimeoDownloader(masterJsonUrl)
 
 	const handleDownload = useCallback(
 		async () => {
-			if (!name || !dbIsReady || !mediaResolved) return
+			if (!name || !dbIsReady || !videoResourcesResolved) return
 
-			if (!mediaResolved) {
+			if (!videoResourcesResolved) {
 				console.error('No se pudo obtener el contenido multimedia')
 				return
 			}
 
-			const { video, audio } = mediaResolved
+			const { video, audio, videoId } = videoResourcesResolved
 
 			if (!audio) {
 				const videoContent = await processVideoMedia(video)
 				if (!videoContent) return
 
 				const vimeoVideo: VimeoVideo = {
-					id: window.crypto.randomUUID(),
+					id: videoId,
 					name: name,
 					url: tabUrl!,
 					videoContent: new Blob(),
@@ -56,7 +56,7 @@ export function DownloadVideo({
 			}
 
 			const vimeoVideo: VimeoVideo = {
-				id: window.crypto.randomUUID(),
+				id: videoId,
 				name: name,
 				url: tabUrl!,
 				videoContent,
@@ -65,7 +65,7 @@ export function DownloadVideo({
 
 			await saveVimeoVideo(vimeoVideo)
 		},
-		[mediaResolved, name, tabUrl, dbIsReady]
+		[videoResourcesResolved, name, tabUrl, dbIsReady]
 	)
 
 	return (
@@ -81,12 +81,12 @@ export function DownloadVideo({
 					type="button"
 					className="text-wrap w-full"
 					onClick={handleDownload}
-					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !mediaResolved}
+					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !videoResourcesResolved}
 				>
 					{
 						downloadState.video.isDownloading || downloadState.audio.isDownloading
 							? 'Obteniendo ...'
-							: mediaResolved
+							: videoResourcesResolved
 								? 'Obtener video'
 								: 'Debe iniciar el video primero'
 					}

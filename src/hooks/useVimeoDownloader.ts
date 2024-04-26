@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react"
 import { MasterVideo } from "@/models/MasterVideo"
 import { MediaResolved } from "@/models/MediaResolved"
 import { SegmentResolved } from "@/models/SegmentResolved"
+import { UUID } from "crypto"
 import { fetchWithRetry } from "@/lib/fetchWithRetry"
 import { splitInChunks } from "@/lib/splitInChunks"
 
@@ -17,17 +18,20 @@ interface DownloadState {
 	}
 }
 
+interface VideoResourcesResolved {
+	videoId: UUID
+	video: MediaResolved
+	audio?: MediaResolved
+}
+
 export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
-	const [betterMediaResolved, setBetterMediaResolved] = useState<{
-		video: MediaResolved
-		audio: MediaResolved | undefined
-	}>()
+	const [betterVideoResourcesResolved, setBetterVideoResourcesResolved] = useState<VideoResourcesResolved>()
 
 	const [masterJsonUrl, setMasterJsonUrl] = useState(resolvedMasterJsonUrl)
 
 	useEffect(() => {
 		if (!resolvedMasterJsonUrl) {
-			setBetterMediaResolved(undefined)
+			setBetterVideoResourcesResolved(undefined)
 			return
 		}
 		setMasterJsonUrl(resolvedMasterJsonUrl)
@@ -52,10 +56,7 @@ export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 
 			const cachedMap = await chrome.storage.session.get(masterUrl)
 
-			const cached = cachedMap[masterUrl] as {
-				video: MediaResolved
-				audio: MediaResolved | undefined
-			}
+			const cached = cachedMap[masterUrl] as VideoResourcesResolved | undefined
 
 			if (cached) {
 				return cached
@@ -94,20 +95,21 @@ export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 				}
 				: undefined
 
-			const mediaResolved = {
+			const mediaResourcesResolved: VideoResourcesResolved = {
+				videoId: master.clip_id,
 				video: videoResolved,
 				audio: audioResolved
 			}
 
 			await chrome.storage.session.set({
-				[masterUrl]: mediaResolved
+				[masterUrl]: mediaResourcesResolved
 			})
 
-			return mediaResolved
+			return mediaResourcesResolved
 		}
 
 		getBetterMedia()
-			.then(setBetterMediaResolved)
+			.then(setBetterVideoResourcesResolved)
 	}, [masterJsonUrl])
 
 	const downloadSegment = useCallback(
@@ -217,7 +219,7 @@ export function useVimeoDownloader(resolvedMasterJsonUrl?: string) {
 
 	return {
 		downloadState,
-		mediaResolved: betterMediaResolved,
+		videoResourcesResolved: betterVideoResourcesResolved,
 		processVideoMedia,
 		processAudioMedia,
 	}
