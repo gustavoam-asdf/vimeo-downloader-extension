@@ -1,10 +1,16 @@
 import { ReactNode, createContext, useEffect, useState } from "react";
 
+export type DetectedVideoInfo = {
+	tab: {
+		id: number
+		url: string
+	}
+	name: string
+	masterJsonUrl: string
+}
+
 export const DetectedVideoContext = createContext<{
-	detectedVideoInfo: {
-		name: string;
-		masterJsonUrl: string;
-	} | null;
+	detectedVideoInfo: DetectedVideoInfo | null;
 } | undefined>(undefined)
 
 export function DetectVideoContextProvider({
@@ -13,11 +19,7 @@ export function DetectVideoContextProvider({
 	children: ReactNode
 }) {
 	const [currentTab, setCurrentTab] = useState<chrome.tabs.Tab>()
-	const [detectedVideoInfo, setDetectedVideoInfo] = useState<{
-		tabId: number
-		name: string
-		masterJsonUrl: string
-	} | null>(null);
+	const [detectedVideoInfo, setDetectedVideoInfo] = useState<DetectedVideoInfo | null>(null);
 
 	useEffect(() => {
 		const getActiveTab = async () => {
@@ -66,7 +68,10 @@ export function DetectVideoContextProvider({
 			if (tabId !== currentTab?.id) return
 
 			setDetectedVideoInfo({
-				tabId,
+				tab: {
+					id: tabId,
+					url: currentTab.url!,
+				},
 				name: currentTab.title ?? 'video-detectado',
 				masterJsonUrl: url,
 			})
