@@ -48,9 +48,6 @@ importers:
         specifier: 1.0.7
         version: 1.0.7(tailwindcss@3.4.6)
     devDependencies:
-      '@types/node':
-        specifier: 20.14.11
-        version: 20.14.11
       '@types/react':
         specifier: 18.3.3
         version: 18.3.3
@@ -1739,6 +1736,7 @@ snapshots:
   '@types/node@20.14.11':
     dependencies:
       undici-types: 5.26.5
+    optional: true
 
   '@types/prop-types@15.7.12': {}
 
@@ -2598,7 +2596,8 @@ snapshots:
 
   typescript@5.5.3: {}
 
-  undici-types@5.26.5: {}
+  undici-types@5.26.5:
+    optional: true
 
   update-browserslist-db@1.0.13(browserslist@4.23.0):
     dependencies:

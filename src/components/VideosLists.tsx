@@ -3,7 +3,6 @@ import { VimeoVideo, useVimeoVideoDB } from "@/hooks/useVimeoVideoDB"
 import { useEffect, useState } from "react"
 
 import { Button } from "./ui/button"
-import { UUID } from "crypto"
 import { useFfmpeg } from "@/hooks/useFfmpeg"
 
 type Params = {
@@ -53,7 +52,7 @@ export function VideosLists({
 		};
 	}, [currentTab, dbIsReady]);
 
-	const downloadVideo = async (videoId: UUID) => {
+	const downloadVideo = async (videoId: string) => {
 		if (isWorking) return
 
 		setIsWorking(true)

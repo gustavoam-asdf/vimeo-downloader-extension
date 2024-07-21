@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import { UUID } from "crypto"
-
 export interface VimeoVideo {
-	id: UUID
+	id: string
 	url: string
 	name: string
 	videoContent: Blob

@@ -3,7 +3,6 @@ import { useCallback, useContext } from "react"
 
 import { MasterVideo } from "@/models/MasterVideo"
 import { MediaResolved } from "@/models/MediaResolved"
-import { UUID } from "node:crypto"
 import { fetchWithRetry } from "@/lib/fetchWithRetry"
 
 export enum MaxVideoHeight {
@@ -13,8 +12,8 @@ export enum MaxVideoHeight {
 	HD = 720,
 }
 
-interface VideoResourcesResolved {
-	videoId: UUID
+export interface VideoResourcesResolved {
+	videoId: string
 	video: MediaResolved
 	audio?: MediaResolved
 }
