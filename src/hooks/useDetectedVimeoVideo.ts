@@ -1,6 +1,6 @@
+import { DetectedVideoContext, DetectedVideoInfo } from "@/context/DetectedVideoContext"
 import { useCallback, useContext } from "react"
 
-import { DetectedVideoContext } from "@/context/DetectedVideoContext"
 import { MasterVideo } from "@/models/MasterVideo"
 import { MediaResolved } from "@/models/MediaResolved"
 import { UUID } from "node:crypto"
@@ -28,9 +28,13 @@ export function useDetectedVimeoVideo() {
 
 	const { detectedVideoInfo } = context
 
-	const resolveMedia = useCallback(async (maxVideoHeight: MaxVideoHeight) => {
-		if (!detectedVideoInfo) return
-
+	const resolveMedia = useCallback(async ({
+		maxVideoHeight,
+		detectedVideoInfo,
+	}: {
+		maxVideoHeight: MaxVideoHeight
+		detectedVideoInfo: DetectedVideoInfo
+	}) => {
 		const { masterJsonUrl } = detectedVideoInfo
 
 		const masterUrl = new URL(masterJsonUrl).toString()
@@ -89,7 +93,7 @@ export function useDetectedVimeoVideo() {
 		})
 
 		return mediaResourcesResolved
-	}, [detectedVideoInfo])
+	}, [])
 
 	return {
 		detectedVideoInfo,
