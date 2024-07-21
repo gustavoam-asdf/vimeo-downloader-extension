@@ -48,9 +48,10 @@ export function useVimeoDownloader() {
 				controller.enqueue(initContent)
 			},
 			async pull(controller) {
-				const segment = media.segments[segmentIndex]
+				const parallelDownloads = 3
+				const segments = media.segments.slice(segmentIndex, segmentIndex + parallelDownloads)
 
-				if (!segment) {
+				if (segments.length === 0) {
 					controller.close()
 
 					setDownloadState(prev => ({
@@ -64,20 +65,37 @@ export function useVimeoDownloader() {
 					return
 				}
 
-				const response = await fetch(segment.absoluteUrl)
+				const chunks = await Promise.all(
+					segments
+						.map(
+							segment => fetch(segment.absoluteUrl)
+								.then(response => {
+									if (!response.ok) {
+										const error = new Error(`[${response.status}] Failed to fetch ${segment.absoluteUrl}: ${response.statusText}`)
+										return Promise.reject(error)
+									}
 
-				if (!response.ok) {
-					controller.error(new Error(`[${response.status}] Failed to fetch ${segment.absoluteUrl}: ${response.statusText}`))
+									return response.arrayBuffer()
+								})
+								.then(content => new Uint8Array(content))
+						)
+				)
+					.catch(error => {
+						controller.error(error)
+					})
+
+				if (!chunks) {
+					return
 				}
 
-				const content = new Uint8Array(await response.arrayBuffer())
-
-				controller.enqueue(content)
+				for (const chunk of chunks) {
+					controller.enqueue(chunk)
+				}
 
 				setDownloadState(prev => {
 					const prevProgress = prev[type].progress
 
-					const increment = (1 / media.segments.length) * 100
+					const increment = (parallelDownloads / media.segments.length) * 100
 
 					return {
 						...prev,
@@ -88,7 +106,7 @@ export function useVimeoDownloader() {
 					}
 				})
 
-				segmentIndex++
+				segmentIndex += parallelDownloads
 			}
 		})
 
