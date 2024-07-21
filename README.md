@@ -6,6 +6,6 @@ pnpm install
 ```
 3. Copy the ffmpeg files from node_modules to public folder
 ```bash
-mkdir -p public/ffmpeg 
-cp node_modules/@ffmpeg/core/dist/esm/* public/ffmpeg
+mkdir -p public/ffmpeg/core
+cp node_modules/@ffmpeg/core/dist/esm/* public/ffmpeg/core
 ```
