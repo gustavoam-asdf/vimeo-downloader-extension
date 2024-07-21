@@ -1,7 +1,7 @@
 chrome.webRequest.onCompleted.addListener(
 	async details => {
 		if (details.tabId === -1) return
-		const isMasterJsonRequest = details.url.includes('master.json')
+		const isMasterJsonRequest = details.url.includes('master.json') || details.url.includes('playlist.json')
 		if (!isMasterJsonRequest) return
 
 		await chrome.storage.session.set({
