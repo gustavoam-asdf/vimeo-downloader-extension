@@ -24,3 +24,6 @@ public/ffmpeg
 *.njsproj
 *.sln
 *.sw?
+
+
+.env
