@@ -1,4 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card"
+import { MaxVideoHeight, useDetectedVimeoVideo } from "@/hooks/useDetectedVimeoVideo"
 import { VimeoVideo, useVimeoVideoDB } from "@/hooks/useVimeoVideoDB"
 
 import { Button } from "./ui/button"
@@ -6,66 +7,87 @@ import { Progress } from "./ui/progress"
 import { useCallback } from "react"
 import { useVimeoDownloader } from "@/hooks/useVimeoDownloader"
 
-type Params = {
-	name?: string
-	tabUrl?: string
-	masterJsonUrl?: string
-}
-
-export function DownloadVideo({
-	name,
-	masterJsonUrl,
-	tabUrl,
-}: Params) {
+export function DownloadVideo() {
+	const { detectedVideoInfo, resolveMedia } = useDetectedVimeoVideo()
 	const { isReady: dbIsReady, saveVimeoVideo } = useVimeoVideoDB()
-	const { videoResourcesResolved, downloadState, processVideoMedia, processAudioMedia } = useVimeoDownloader(masterJsonUrl)
+	const { downloadState, downloadMedia } = useVimeoDownloader()
+
+	const streamToBlob = async (stream: ReadableStream<Uint8Array>, {
+		type
+	}: {
+		type: string
+	}) => {
+		const chunks: Uint8Array[] = []
+
+		for await (const chunk of stream) {
+			chunks.push(chunk)
+		}
+
+		return new Blob(chunks, { type })
+	}
 
 	const handleDownload = useCallback(
 		async () => {
-			if (!name || !dbIsReady || !videoResourcesResolved) return
+			if (!detectedVideoInfo) return
 
-			if (!videoResourcesResolved) {
-				console.error('No se pudo obtener el contenido multimedia')
-				return
-			}
+			const videoResourcesResolved = await resolveMedia({
+				maxVideoHeight: MaxVideoHeight.FHD,
+				detectedVideoInfo
+			})
 
 			const { video, audio, videoId } = videoResourcesResolved
 
 			if (!audio) {
-				const videoContent = await processVideoMedia(video)
-				if (!videoContent) return
+				const videoStream = await downloadMedia({
+					media: video,
+					type: 'video'
+				})
+				if (!videoStream) return
+
+				const videoContent = await streamToBlob(videoStream, { type: 'video/m4v' })
 
 				const vimeoVideo: VimeoVideo = {
 					id: videoId,
-					name: name,
-					url: tabUrl!,
-					videoContent: new Blob(),
+					name: detectedVideoInfo.name,
+					url: detectedVideoInfo.tab.url,
+					videoContent,
 				}
 
 				await saveVimeoVideo(vimeoVideo)
 				return
 			}
 
-			const [videoContent, audioContent] = await Promise.all([
-				processVideoMedia(video),
-				processAudioMedia(audio)
+			const [videoStream, audioStream] = await Promise.all([
+				downloadMedia({
+					media: video,
+					type: 'video'
+				}),
+				downloadMedia({
+					media: audio,
+					type: 'audio'
+				})
 			])
 
-			if (!videoContent || !audioContent) {
+			if (!videoStream || !audioStream) {
 				throw new Error('No se pudo obtener el contenido multimedia')
 			}
 
+			const [videoContent, audioContent] = await Promise.all([
+				streamToBlob(videoStream, { type: 'video/m4v' }),
+				streamToBlob(audioStream, { type: 'audio/m4a' })
+			])
+
 			const vimeoVideo: VimeoVideo = {
 				id: videoId,
-				name: name,
-				url: tabUrl!,
+				name: detectedVideoInfo.name,
+				url: detectedVideoInfo.tab.url,
 				videoContent,
-				audioContent
+				audioContent,
 			}
 
 			await saveVimeoVideo(vimeoVideo)
 		},
-		[videoResourcesResolved, name, tabUrl, dbIsReady]
+		[detectedVideoInfo, resolveMedia, downloadMedia, saveVimeoVideo]
 	)
 
 	return (
@@ -75,18 +97,18 @@ export function DownloadVideo({
 			</CardHeader>
 			<CardContent>
 				<h2 className="text-primary-foreground font-bold text-sm text-pretty mb-3">
-					{name}
+					{detectedVideoInfo?.name}
 				</h2>
 				<Button
 					type="button"
 					className="text-wrap w-full"
 					onClick={handleDownload}
-					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !videoResourcesResolved}
+					disabled={downloadState.video.isDownloading || downloadState.audio.isDownloading || !dbIsReady || !detectedVideoInfo}
 				>
 					{
 						downloadState.video.isDownloading || downloadState.audio.isDownloading
 							? 'Obteniendo ...'
-							: videoResourcesResolved
+							: detectedVideoInfo
 								? 'Obtener video'
 								: 'Debe iniciar el video primero'
 					}
