@@ -8,7 +8,11 @@ chrome.webRequest.onCompleted.addListener(
 			type: 'new-master-json',
 			tabId: details.tabId,
 			url: details.url,
-		});
+		})
+			.catch((error) => {
+				console.error("Failed to send message to from script")
+				console.error(error)
+			})
 	},
 	{
 		urls: [
