@@ -10,7 +10,7 @@ chrome.webRequest.onCompleted.addListener(
 			url: details.url,
 		})
 			.catch((error) => {
-				console.error("Failed to send message to from script")
+				console.error("Failed to send message from background script")
 				console.error(error)
 			})
 	},
