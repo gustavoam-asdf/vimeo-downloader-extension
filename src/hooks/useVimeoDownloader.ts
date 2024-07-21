@@ -74,13 +74,19 @@ export function useVimeoDownloader() {
 
 				controller.enqueue(content)
 
-				setDownloadState(prev => ({
-					...prev,
-					[type]: {
-						isDownloading: true,
-						progress: prev[type].progress + segmentIndex * 100 / media.segments.length
+				setDownloadState(prev => {
+					const prevProgress = prev[type].progress
+
+					const increment = (1 / media.segments.length) * 100
+
+					return {
+						...prev,
+						[type]: {
+							isDownloading: true,
+							progress: prevProgress + increment
+						}
 					}
-				}))
+				})
 
 				segmentIndex++
 			}
