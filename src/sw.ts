@@ -4,12 +4,11 @@ chrome.webRequest.onCompleted.addListener(
 		const isMasterJsonRequest = details.url.includes('master.json') || details.url.includes('playlist.json')
 		if (!isMasterJsonRequest) return
 
-		await chrome.storage.session.set({
-			["new-master-json"]: {
-				tabId: details.tabId,
-				url: details.url
-			},
-		})
+		await chrome.runtime.sendMessage({
+			type: 'new-master-json',
+			tabId: details.tabId,
+			url: details.url,
+		});
 	},
 	{
 		urls: [
