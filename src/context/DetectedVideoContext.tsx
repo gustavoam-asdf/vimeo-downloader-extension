@@ -60,14 +60,12 @@ export function DetectVideoContextProvider({
 
 			if (!isMasterJsonMessage) return
 
-			
-
 			const { tabId, url } = message as {
 				tabId: number
 				url: string
 			}
 
-			if (tabId !== currentTab?.id) return
+			if (tabId !== currentTab?.id) return 
 
 			const newDetectedVideoInfo: DetectedVideoInfo = {
 				tab: {
