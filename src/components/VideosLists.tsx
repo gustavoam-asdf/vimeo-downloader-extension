@@ -3,15 +3,11 @@ import { VimeoVideo, useVimeoVideoDB } from "@/hooks/useVimeoVideoDB"
 import { useEffect, useState } from "react"
 
 import { Button } from "./ui/button"
+import { useDetectedVimeoVideo } from "@/hooks/useDetectedVimeoVideo"
 import { useFfmpeg } from "@/hooks/useFfmpeg"
 
-type Params = {
-	currentTab: chrome.tabs.Tab | undefined
-}
-
-export function VideosLists({
-	currentTab,
-}: Params) {
+export function VideosLists() {
+	const { detectedVideoInfo } = useDetectedVimeoVideo()
 	const [vimeoVideos, setVimeoVideos] = useState<Pick<VimeoVideo, "id" | "name">[]>()
 	const { isReady: dbIsReady, listVimeoVideos, getVimeoVideoById, deleteVimeoVideo } = useVimeoVideoDB()
 	const [isWorking, setIsWorking] = useState(false)
@@ -19,28 +15,28 @@ export function VideosLists({
 
 	useEffect(() => {
 		load()
-	}, [])
+	}, [load])
 
 	useEffect(() => {
 		const getVimeoVideos = async () => {
-			if (!currentTab?.url) return
+			if (!detectedVideoInfo) return
 			if (!dbIsReady) return
 
-			const vimeoVideos = await listVimeoVideos(currentTab.url)
+			const vimeoVideos = await listVimeoVideos(detectedVideoInfo.tab.url)
 
 			setVimeoVideos(vimeoVideos)
 		}
 
 		getVimeoVideos()
-	}, [currentTab, dbIsReady])
+	}, [detectedVideoInfo, dbIsReady, listVimeoVideos])
 
 	useEffect(() => {
 		if (!dbIsReady) return
 
 		const onVimeoVideoListUpdated = async () => {
-			if (!currentTab?.url) return
+			if (!detectedVideoInfo) return
 
-			const vimeoVideos = await listVimeoVideos(currentTab.url)
+			const vimeoVideos = await listVimeoVideos(detectedVideoInfo.tab.url)
 
 			setVimeoVideos(vimeoVideos)
 		};
@@ -50,7 +46,7 @@ export function VideosLists({
 		return () => {
 			window.removeEventListener("vimeo-video-list-updated", onVimeoVideoListUpdated);
 		};
-	}, [currentTab, dbIsReady]);
+	}, [detectedVideoInfo, dbIsReady, listVimeoVideos]);
 
 	const downloadVideo = async (videoId: string) => {
 		if (isWorking) return
